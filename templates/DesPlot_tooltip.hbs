@@ -1,0 +1,28 @@
+<div class="col-md-12 title">{{gene}}</div>
+
+<div class="col-md-12 process">{{process}}</div>
+
+<div class="col-md-12 function">{{gene_function}}</div>
+
+<div class="col-md-6 miniTitle">
+    Log2 FC
+</div>
+                
+<div class="col-md-6 info">{{log2}}</div>
+
+<div class="col-md-6 miniTitle">
+    Pvalue
+</div>
+                
+<div class="col-md-6 info">{{pvalue}}</div>
+
+<div class="col-md-12 miniTitle">
+    mutation
+</div>
+                
+<div class="col-md-12 mutation">
+    {{#each mutation}}
+    {{this}}<br>
+    {{/each}}
+
+</div>
