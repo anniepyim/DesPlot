@@ -31,16 +31,18 @@
         
     <script src="./js/DesPlot.js" ></script>
     <script>
-        var json = ["HCT116-21-3-c1","HCT116-21-3-c3","HCT116-5-4"],
+        var json = ["TCGA-2J-AAB1","TCGA-2J-AAB4"],
             sessionid = "test",
             organism = "Human",
             host = "localhost",
             port = "3306",
             user = "root",
             passwd = "",
-            unix_socket = "/tmp/mysql.sock";
+            unix_socket = "/tmp/mysql.sock",
+            upper_limit = 1,
+            lower_limit = -1;
 
-        var parameter = 'jsons=' + JSON.stringify(json) + '&organism='+ organism +'&sessionid='+ sessionid + '&host='+host + '&port='+port + '&user='+user + '&passwd='+passwd + '&unix_socket='+unix_socket;
+        var parameter = 'jsons=' + JSON.stringify(json) + '&organism='+ organism +'&sessionid='+ sessionid + '&host='+host + '&port='+port + '&user='+user + '&passwd='+passwd + '&unix_socket='+unix_socket + '&lower_limit='+lower_limit + '&upper_limit='+upper_limit;
 
         var svg = "svgs-all";
 

@@ -20,10 +20,20 @@ port = form.getvalue('port')
 user = form.getvalue('user')
 passwd = form.getvalue('passwd')
 unix_socket = form.getvalue('unix_socket')
+upper_limit = float(form.getvalue('upper_limit'))
+lower_limit = float(form.getvalue('lower_limit'))
 
-#sampleID = ["HCT116-21-3-c1", "HCT116-21-3-c3", "HCT116-5-4", "HCT116-8-3-c3"]
+
 #sampleID = {'group1':['HCT116-21-3-c1', 'HCT116-21-3-c3', 'HCT116-5-4', 'HCT116-5-4-p'],'group2':['HCT116-8-3-c3', 'HCT116-8-3-c4', 'RPE-21-3-c1', 'RPE-21-3-c1-p','RPE-21-3-c2', 'RPE-5-3-12-3-p']}
+#sessionid= "test"
 #organism = "Human"
+#host = "localhost"
+#port = 3306
+#user = "root"
+#passwd = ""
+#unix_socket = "/tmp/mysql.sock"
+#upper_limit = 2
+#lower_limit = -2
 
 isGroup = isinstance(sampleID, dict)
 
@@ -48,8 +58,7 @@ query = 'SELECT gene, process from target'
 genefunc = pd.read_sql(query, con=conn)
 conn.close()
 
-#main.loc[main.log2 > 10, 'log2'] = 10
-#main.loc[main.log2 < -10, 'log2'] = -10
+main = main.drop(main[(main.log2 > upper_limit) | (main.log2 < lower_limit)].index)
 
 if (isGroup):
     main = pd.merge(main,grouping,on='sampleID',how='inner')

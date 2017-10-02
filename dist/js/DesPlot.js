@@ -636,6 +636,9 @@ var yAxis = d3.svg.axis()
     .scale(y)
     .orient("left");
 
+var yzoom = d3.behavior.zoom()
+    .y(y);
+
 var colorScale = d3.scale.linear();
     //.interpolate(d3.interpolateHsl);
 
@@ -683,9 +686,36 @@ SP.drawaxis = function () {
         .attr("width", 18)
         .attr("height", 18);
 
+    SPsvg.append("defs").append("clipPath")
+      .attr("id", "clip")
+      .append("rect")
+      .attr("width", SPwidth)
+      .attr("height", SPheight);
+    
+    SPsvg.append("g")
+          .attr("class", "scatter")
+          .attr("clip-path", "url(#clip)");
+
     SPsvg.append("text")
         .attr("class", "SPtitle")
         .attr("transform", "translate(" + (SPwidth - 220) + ",13)");
+    
+    SPsvg.append("svg:rect")
+          .attr("class", "zoom xy box")
+          .attr("width", SPwidth)
+          .attr("height", SPheight)
+          .style("visibility", "hidden")
+          .attr("pointer-events", "all")
+          .call(yzoom);
+  
+    SPsvg.append("svg:rect")
+          .attr("class", "zoom y box")
+          .attr("width", SPmargin.left)
+          .attr("height", SPheight)
+          .attr("transform", "translate(" + -SPmargin.left + "," + 0 + ")")
+          .style("visibility", "hidden")
+          .attr("pointer-events", "all")
+          .call(yzoom);
 
 };
 
@@ -730,104 +760,135 @@ SP.update = function (jsondata, nfunc, ncolor,colorrange) {
 
     SPsvg.select(".x.axis")
         .call(xAxis);
+    
 
     colorScale.domain([yabs * -1, 0,yabs])
         .range([mycolors[0], mycolors[5],mycolors[10]]);
 
-    var nodedata = data.map(function (d) {
-        return {
-            x: x(d.sampleID), 
-            y: y(d.log2), 
-            r: 3.5,
-            log2: d3.format(".3f")(d.log2),
-            pvalue: d3.format(".3f")(d.pvalue),
-            sample: d.sampleID,
-            process: d.process,
-            gene_function: d.gene_function,
-            gene: d.gene,
-            mutation: d.mutation.split(',')
-        };
-    });
-
-    var nodes = SPsvg.selectAll("circle.node")
-        .data(nodedata);
-
-    var norm = d3.random.normal(0, 1.5);
-    var iterations = 0;
-
-    function collide(node) {
-        var r = node.r + 16,
-            nx1 = node.x - r,
-            nx2 = node.x + r,
-            ny1 = node.y - r,
-            ny2 = node.y + r;
-        return function (quad, x1, y1, x2, y2) {
-            if (quad.point && (quad.point !== node)) {
-                var x = node.x - quad.point.x,
-                    y = node.y - quad.point.y,
-                    l = Math.sqrt(x * x + y * y),
-                    r = node.r + quad.point.r;
-                if (l < r)
-                    node.x += norm();
-            }
-            return x1 > nx2 || x2 < nx1 || y1 > ny2 || y2 < ny1;
-        };
-    }
-
-    while (iterations++ < 100) {
-        var q = d3.geom.quadtree(nodedata);
-
-        for (var i = 0; i < nodedata.length; i++)
-            q.visit(collide(nodedata[i]));
-    }
-
-    nodes.transition()
-        .duration(1000)
-        .attr("r", function (d) {
-            return (d.mutation[0] !== "" && d.mutation[0] !== "0 mutation(s)") ? highlightradius : d.r;
-        })
-        .attr("cx", function (d) {
-            return d.x;
-        })
-        .attr("cy", function (d) {
-            return d.y;
-        })
-        .style("fill", function (d) {
-            return (d.mutation[0] !== "" && d.mutation[0] !== "0 mutation(s)") ? mutatedcolor : d.log2 > yMax ? mycolors[10] : d.log2 < yMin ? mycolors[0]: colorScale(d.log2);
+     var nodedata = data.map(function (d) {
+            return {
+                x: x(d.sampleID), 
+                y: y(d.log2),
+                y2: d.log2,
+                r: 3.5,
+                log2: d3.format(".3f")(d.log2),
+                pvalue: d3.format(".3f")(d.pvalue),
+                sample: d.sampleID,
+                process: d.process,
+                gene_function: d.gene_function,
+                gene: d.gene,
+                mutation: d.mutation.split(',')
+            };
         });
+    
+    function updateNodes(zoom){
+        
+        console.log(zoom)
+        
+        var gs = SPsvg.select("g.scatter");
+        
+        var nodes = gs.selectAll("circle.node")
+            .data(nodedata);
+        
+        var norm = d3.random.normal(0, 1.5);
+        var iterations = 0;
 
-    nodes.enter().append("circle")
-        .attr("class", "node")
-        .attr("r", function (d) {
-            return (d.mutation[0] !== "" && d.mutation[0] !== "0 mutation(s)") ? highlightradius : d.r;
-        })
-        .attr("cx", function (d) {
-            return d.x;
-        })
-        .attr("cy", function (d) {
-            return d.y;
-        })
-        .style("fill", function (d) {
-            return (d.mutation[0] !== "" && d.mutation[0] !== "0 mutation(s)") ? mutatedcolor : d.log2 > yMax ? mycolors[10] : d.log2 < yMin ? mycolors[0]: colorScale(d.log2);
-        })
-        .style("stroke", "black")
-        .style("stroke-width", 0.5)
-        /*.on("mouseover", function (d) {
-            SP.mouseoverfunc(d, d.gene);
-            SP.highlight(d, d.gene);
-        })
-        .on("mouseout", function (d) {
-            SP.mouseoverfunc(d, "");
-            SP.highlight(d, "");
-        });*/
-        .on('mouseover', SP.onMouseOverNode)
-        .on('mouseout', SP.onMouseOut);
+        function collide(node) {
+            var r = node.r + 16,
+                nx1 = node.x - r,
+                nx2 = node.x + r,
+                ny1 = node.y - r,
+                ny2 = node.y + r;
+            return function (quad, x1, y1, x2, y2) {
+                if (quad.point && (quad.point !== node)) {
+                    var x = node.x - quad.point.x,
+                        y = node.y - quad.point.y,
+                        l = Math.sqrt(x * x + y * y),
+                        r = node.r + quad.point.r;
+                    if (l < r)
+                        node.x += norm();
+                }
+                return x1 > nx2 || x2 < nx1 || y1 > ny2 || y2 < ny1;
+            };
+        }
 
-    nodes.exit()
-        .transition(1000)
-        .attr("r", 0)
-        .remove();
-    finaldata = jsondata;
+        while (iterations++ < 100) {
+            var q = d3.geom.quadtree(nodedata);
+
+            for (var i = 0; i < nodedata.length; i++)
+                q.visit(collide(nodedata[i]));
+        }
+
+        nodes.enter().append("circle")
+            .attr("class", "node")
+            .attr("r", function (d) {
+                return (d.mutation[0] !== "" && d.mutation[0] !== "0 mutation(s)") ? highlightradius : d.r;
+            })
+            .attr("cx", function (d) {
+                return d.x;
+            })
+            .attr("cy", function (d) {
+                return y(d.y2);
+            })
+            .style("fill", function (d) {
+                return (d.mutation[0] !== "" && d.mutation[0] !== "0 mutation(s)") ? mutatedcolor : d.log2 > yMax ? mycolors[10] : d.log2 < yMin ? mycolors[0]: colorScale(d.log2);
+            })
+            .style("stroke", "black")
+            .style("stroke-width", 0.5)
+            .on('mouseover', SP.onMouseOverNode)
+            .on('mouseout', SP.onMouseOut);
+        
+        if (zoom){
+            
+            nodes.attr("cx", function(d) {
+                return d.x;
+            })
+                .attr("cy", function(d) {
+                return y(d.y2);
+                
+            });  
+        }else{
+            
+            nodes.transition()
+                .duration(1000)
+                .attr("r", function (d) {
+                    return (d.mutation[0] !== "" && d.mutation[0] !== "0 mutation(s)") ? highlightradius : d.r;
+                })
+                .attr("cx", function (d) {
+                    return d.x;
+                })
+                .attr("cy", function (d) {
+                    return y(d.y2);
+                })
+                .style("fill", function (d) {
+                    return (d.mutation[0] !== "" && d.mutation[0] !== "0 mutation(s)") ? mutatedcolor : d.log2 > yMax ? mycolors[10] : d.log2 < yMin ? mycolors[0]: colorScale(d.log2);
+                });
+            
+        }
+        
+        nodes.exit()
+            .transition(1000)
+            .attr("r", 0)
+            .remove();
+    }
+    
+    draw(false);
+    
+    function zoom_update() {
+        yzoom = d3.behavior.zoom()
+            .y(y)
+            .on("zoom", function(){draw(true);});
+
+        SPsvg.select('rect.zoom.xy.box').call(yzoom);
+        SPsvg.select('rect.zoom.y.box').call(yzoom);
+    }
+
+    function draw(zoom) {
+        SPsvg.select(".y.axis").call(yAxis);
+
+        updateNodes(zoom);
+        zoom_update();
+    }    
 
 };
 
@@ -868,6 +929,7 @@ var highlight = function(target){
         });
     
 };
+
 
 SP.init = function (jsondata,process,processColor,colorrange) {
     
