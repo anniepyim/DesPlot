@@ -783,8 +783,6 @@ SP.update = function (jsondata, nfunc, ncolor,colorrange) {
     
     function updateNodes(zoom){
         
-        console.log(zoom)
-        
         var gs = SPsvg.select("g.scatter");
         
         var nodes = gs.selectAll("circle.node")
