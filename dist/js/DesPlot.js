@@ -699,14 +699,6 @@ SP.drawaxis = function () {
     SPsvg.append("text")
         .attr("class", "SPtitle")
         .attr("transform", "translate(" + (SPwidth - 220) + ",13)");
-    
-    SPsvg.append("svg:rect")
-          .attr("class", "zoom xy box")
-          .attr("width", SPwidth)
-          .attr("height", SPheight)
-          .style("visibility", "hidden")
-          .attr("pointer-events", "all")
-          .call(yzoom);
   
     SPsvg.append("svg:rect")
           .attr("class", "zoom y box")

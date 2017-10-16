@@ -54,8 +54,8 @@ if (isGroup):
 conn = pymysql.connect(host=host, port=port, user=user, passwd=passwd, db=organism, unix_socket=unix_socket)
 query = 'SELECT target_exp.sampleID, target_exp.gene, target_exp.log2, target_exp.pvalue, target_mut.mutation FROM target_exp LEFT JOIN target_mut ON target_exp.sampleID=target_mut.sampleID AND target_exp.gene=target_mut.gene WHERE target_exp.sampleID in ('+','.join(map("'{0}'".format, sampleID))+') AND target_exp.userID in ("mitox","'+sessionid+'")'
 main = pd.read_sql(query, con=conn)
-query = 'SELECT gene, process from target'
-genefunc = pd.read_sql(query, con=conn)
+query2 = 'SELECT gene, process from target'
+genefunc = pd.read_sql(query2, con=conn)
 conn.close()
 
 main = main.drop(main[(main.log2 > upper_limit) | (main.log2 < lower_limit)].index)
@@ -82,5 +82,5 @@ print 'Content-Type: application/json\n\n'
 print (main)
 #print "Content-type: text/html\n"
 #print "<html>"
-#print query
+#print main
 #print "</html>"
