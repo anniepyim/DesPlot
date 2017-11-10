@@ -657,6 +657,8 @@ var SP = function (obj) {
     this.SPwrapped = obj;
 };
 
+var rjsondata, rnfunc, rncolor,rcolorrange;
+
 SP.drawaxis = function () {
 
     SPsvg.append("g")
@@ -708,6 +710,16 @@ SP.drawaxis = function () {
           .style("visibility", "hidden")
           .attr("pointer-events", "all")
           .call(yzoom);
+    
+    SPsvg.append("text")
+        .attr("class","resetAxis")
+        .attr("transform","translate(30,0)")
+        .style("fill","#66b3ff")
+        .style("cursor","pointer")
+        .style("text-decoration","underline")
+        .style("font-weight","bold")
+        .text("Reset Axis")
+        .on("click", resetAxis);
 
 };
 
@@ -716,6 +728,11 @@ SP.update = function (jsondata, nfunc, ncolor,colorrange) {
     var data = [];
     
     mycolors = colorrange;
+    
+    rjsondata = jsondata;
+    rnfunc = nfunc;
+    rncolor = ncolor;
+    rcolorrange = colorrange;
 
     jsondata.forEach(function (d) {
         if (d.process == nfunc && !isNaN(parseFloat(d.log2)) && isFinite(d.log2)) {
@@ -882,6 +899,10 @@ SP.update = function (jsondata, nfunc, ncolor,colorrange) {
 
 };
 
+var resetAxis = function(){
+    
+    SP.update(rjsondata, rnfunc, rncolor,rcolorrange);
+};
 
 SP.onMouseOut = function(node){
     
