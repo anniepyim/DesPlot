@@ -9,11 +9,12 @@ Backbone.$ = jQuery;
 Handlebars = require('handlebars');
 _ = require('underscore');
 d3 = require('d3');
+d3_save_svg = require('d3-save-svg');
 
 //Require the App so that it could called
 DesPlot = require('./js/main');
 
-},{"./js/main":2,"backbone":9,"d3":11,"handlebars":41,"jquery":42,"underscore":56}],2:[function(require,module,exports){
+},{"./js/main":2,"backbone":9,"d3":12,"d3-save-svg":11,"handlebars":42,"jquery":43,"underscore":57}],2:[function(require,module,exports){
 var DesPlot = {};
 //var colorbrewer = require('colorbrewer');
 var BC = require('./svgs/barchart.js');
@@ -42,6 +43,23 @@ DesPlot.init = function(json,parameter,svg,pyScript,onError){
             mainframe.setElement('#'+svg).renderDesPlot();
             
             BC.init(data,sccolor,bccolor);
+
+
+            d3.select('#btnSave').on('click', function() {
+              var configsc = {
+                filename: 'scatterplot',
+              };
+              var configbc = {
+                filename: 'barchart',
+              };
+              var confighm = {
+                filename: 'heatmap',
+              };
+              d3_save_svg.save(d3.select('#scatterplotsvg').node(), configsc);
+              d3_save_svg.save(d3.select('#barchartsvg').node(), configbc);
+              d3_save_svg.save(d3.select('#heatmapsvg').node(), confighm);
+            });
+
         },
         error: function(e){
             onError(e);
@@ -76,12 +94,13 @@ BC.init = function (jsondata,colorrange,color) {
     
     var resp = d3.select("#barchart")
         .append('div')
-        .attr("id", "barchartsvg")
+        .attr("id", "barchartsvgdiv")
         .attr('class', 'svg-container'); //container class to make it responsive
     
 
     var BARsvg = resp
         .append("svg")
+        .attr("id", "barchartsvg")
         .attr('class', 'canvas svg-content-responsive')
         .attr('preserveAspectRatio', 'xMinYMin meet')
         .attr('viewBox', [0, 0, svgWidth, svgHeight].join(' '))
@@ -364,11 +383,12 @@ heatmap.draw = function (jsondata, samplelist, genelist,mycolors) {
     
     var resp = d3.select("#heatmap")
         .append('div')
-        .attr("id", "heatmapsvg")
+        .attr("id", "heatmapsvgdiv")
         .attr('class', 'svg-container'); //container class to make it responsive
 
     var svg = resp
         .append("svg")
+        .attr("id","heatmapsvg")
         .attr('class', 'canvas svg-content-responsive')
         .attr('preserveAspectRatio', 'xMinYMin meet')
         .attr('viewBox', [0, 0, svgWidth, svgHeight].join(' '))
@@ -895,7 +915,17 @@ SP.update = function (jsondata, nfunc, ncolor,colorrange) {
 
         updateNodes(zoom);
         zoom_update();
-    }    
+    }
+
+        var svgData = $("#scatterplotsvg")[0].outerHTML;
+        var svgBlob = new Blob([svgData], {type:"image/svg+xml;charset=utf-8"});
+        var svgUrl = URL.createObjectURL(svgBlob);
+        var downloadLink = document.createElement("a");
+        downloadLink.href = svgUrl;
+        downloadLink.download = "newesttree.svg";
+        document.body.appendChild(downloadLink);
+        downloadLink.click();
+        document.body.removeChild(downloadLink);    
 
 };
 
@@ -1022,7 +1052,7 @@ this["Templates"]["DesPlot_tooltip"] = Handlebars.template({"1":function(contain
 
 if (typeof exports === 'object' && exports) {module.exports = this["Templates"];}
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"handlebars":41}],8:[function(require,module,exports){
+},{"handlebars":42}],8:[function(require,module,exports){
 (function (process,__filename){
 /** vim: et:ts=4:sw=4:sts=4
  * @license amdefine 1.0.1 Copyright (c) 2011-2016, The Dojo Foundation All Rights Reserved.
@@ -1327,7 +1357,7 @@ function amdefine(module, requireFn) {
 module.exports = amdefine;
 
 }).call(this,require('_process'),"/node_modules/amdefine/amdefine.js")
-},{"_process":44,"path":43}],9:[function(require,module,exports){
+},{"_process":45,"path":44}],9:[function(require,module,exports){
 (function (global){
 //     Backbone.js 1.3.3
 
@@ -3251,9 +3281,226 @@ module.exports = amdefine;
 });
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"jquery":42,"underscore":56}],10:[function(require,module,exports){
+},{"jquery":43,"underscore":57}],10:[function(require,module,exports){
 
 },{}],11:[function(require,module,exports){
+(function (global, factory) {
+  typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
+  typeof define === 'function' && define.amd ? define('d3-save-svg', ['exports'], factory) :
+  factory((global.d3_save_svg = {}));
+}(this, function (exports) { 'use strict';
+
+  function download (svgInfo, filename) {
+    window.URL = (window.URL || window.webkitURL);
+    var blob = new Blob(svgInfo.source, {type: 'text\/xml'});
+    var url = window.URL.createObjectURL(blob);
+    var body = document.body;
+    var a = document.createElement('a');
+
+    body.appendChild(a);
+    a.setAttribute('download', filename + '.svg');
+    a.setAttribute('href', url);
+    a.style.display = 'none';
+    a.click();
+    a.parentNode.removeChild(a);
+
+    setTimeout(function() {
+      window.URL.revokeObjectURL(url);
+    }, 10);
+  }
+
+  var prefix = {
+    svg: 'http://www.w3.org/2000/svg',
+    xhtml: 'http://www.w3.org/1999/xhtml',
+    xlink: 'http://www.w3.org/1999/xlink',
+    xml: 'http://www.w3.org/XML/1998/namespace',
+    xmlns: 'http://www.w3.org/2000/xmlns/',
+  };
+
+  function setInlineStyles (svg) {
+
+    // add empty svg element
+    var emptySvg = window.document.createElementNS(prefix.svg, 'svg');
+    window.document.body.appendChild(emptySvg);
+    var emptySvgDeclarationComputed = window.getComputedStyle(emptySvg);
+
+    // hardcode computed css styles inside svg
+    var allElements = traverse(svg);
+    var i = allElements.length;
+    while (i--) {
+      explicitlySetStyle(allElements[i]);
+    }
+
+    emptySvg.parentNode.removeChild(emptySvg);
+
+    function explicitlySetStyle(element) {
+      var cSSStyleDeclarationComputed = window.getComputedStyle(element);
+      var i;
+      var len;
+      var key;
+      var value;
+      var computedStyleStr = '';
+
+      for (i = 0, len = cSSStyleDeclarationComputed.length; i < len; i++) {
+        key = cSSStyleDeclarationComputed[i];
+        value = cSSStyleDeclarationComputed.getPropertyValue(key);
+        if (value !== emptySvgDeclarationComputed.getPropertyValue(key)) {
+          // Don't set computed style of width and height. Makes SVG elmements disappear.
+          if ((key !== 'height') && (key !== 'width')) {
+            computedStyleStr += key + ':' + value + ';';
+          }
+
+        }
+      }
+
+      element.setAttribute('style', computedStyleStr);
+    }
+
+    function traverse(obj) {
+      var tree = [];
+      tree.push(obj);
+      visit(obj);
+      function visit(node) {
+        if (node && node.hasChildNodes()) {
+          var child = node.firstChild;
+          while (child) {
+            if (child.nodeType === 1 && child.nodeName != 'SCRIPT') {
+              tree.push(child);
+              visit(child);
+            }
+
+            child = child.nextSibling;
+          }
+        }
+      }
+
+      return tree;
+    }
+  }
+
+  function preprocess (svg) {
+    svg.setAttribute('version', '1.1');
+
+    // removing attributes so they aren't doubled up
+    svg.removeAttribute('xmlns');
+    svg.removeAttribute('xlink');
+
+    // These are needed for the svg
+    if (!svg.hasAttributeNS(prefix.xmlns, 'xmlns')) {
+      svg.setAttributeNS(prefix.xmlns, 'xmlns', prefix.svg);
+    }
+
+    if (!svg.hasAttributeNS(prefix.xmlns, 'xmlns:xlink')) {
+      svg.setAttributeNS(prefix.xmlns, 'xmlns:xlink', prefix.xlink);
+    }
+
+    setInlineStyles(svg);
+
+    var xmls = new XMLSerializer();
+    var source = xmls.serializeToString(svg);
+    var doctype = '<?xml version="1.0" standalone="no"?><!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">';
+    var rect = svg.getBoundingClientRect();
+    var svgInfo = {
+      top: rect.top,
+      left: rect.left,
+      width: rect.width,
+      height: rect.height,
+      class: svg.getAttribute('class'),
+      id: svg.getAttribute('id'),
+      childElementCount: svg.childElementCount,
+      source: [doctype + source],
+    };
+
+    return svgInfo;
+  }
+
+  function converterEngine(input) { // fn BLOB => Binary => Base64 ?
+    var uInt8Array = new Uint8Array(input);
+    var i = uInt8Array.length;
+    var biStr = []; //new Array(i);
+    while (i--) {
+      biStr[i] = String.fromCharCode(uInt8Array[i]);
+    }
+
+    var base64 = window.btoa(biStr.join(''));
+    return base64;
+  };
+
+  function getImageBase64(url, callback) {
+    var xhr = new XMLHttpRequest(url);
+    var img64;
+    xhr.open('GET', url, true); // url is the url of a PNG/JPG image.
+    xhr.responseType = 'arraybuffer';
+    xhr.callback = callback;
+    xhr.onload = function() {
+      img64 = converterEngine(this.response); // convert BLOB to base64
+      this.callback(null, img64); // callback : err, data
+    };
+
+    xhr.onerror = function() {
+      callback('B64 ERROR', null);
+    };
+
+    xhr.send();
+  };
+
+  function isDataURL(str) {
+    var uriPattern = /^\s*data:([a-z]+\/[a-z0-9\-]+(;[a-z\-]+\=[a-z\-]+)?)?(;base64)?,[a-z0-9\!\$\&\'\,\(\)\*\+\,\;\=\-\.\_\~\:\@\/\?\%\s]*\s*$/i;
+    return !!str.match(uriPattern);
+  }
+
+  function save(svgElement, config) {
+    if (svgElement.nodeName !== 'svg' || svgElement.nodeType !== 1) {
+      throw 'Need an svg element input';
+    }
+
+    var config = config || {};
+    var svgInfo = preprocess(svgElement, config);
+    var defaultFileName = getDefaultFileName(svgInfo);
+    var filename = config.filename || defaultFileName;
+    var svgInfo = preprocess(svgElement);
+    download(svgInfo, filename);
+  }
+
+  function embedRasterImages(svg) {
+
+    var images = svg.querySelectorAll('image');
+    [].forEach.call(images, function(image) {
+      var url = image.getAttribute('href');
+
+      // Check if it is already a data URL
+      if (!isDataURL(url)) {
+        // convert to base64 image and embed.
+        getImageBase64(url, function(err, d) {
+          image.setAttributeNS(prefix.xlink, 'href', 'data:image/png;base64,' + d);
+        });
+      }
+
+    });
+
+  }
+
+  function getDefaultFileName(svgInfo) {
+    var defaultFileName = 'untitled';
+    if (svgInfo.id) {
+      defaultFileName = svgInfo.id;
+    } else if (svgInfo.class) {
+      defaultFileName = svgInfo.class;
+    } else if (window.document.title) {
+      defaultFileName = window.document.title.replace(/[^a-z0-9]/gi, '-').toLowerCase();
+    }
+
+    return defaultFileName;
+  }
+
+  var version = "0.0.2";
+
+  exports.version = version;
+  exports.save = save;
+  exports.embedRasterImages = embedRasterImages;
+
+}));
+},{}],12:[function(require,module,exports){
 !function() {
   var d3 = {
     version: "3.5.17"
@@ -12808,7 +13055,7 @@ module.exports = amdefine;
   });
   if (typeof define === "function" && define.amd) this.d3 = d3, define(d3); else if (typeof module === "object" && module.exports) module.exports = d3; else this.d3 = d3;
 }();
-},{}],12:[function(require,module,exports){
+},{}],13:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -12875,7 +13122,7 @@ exports['default'] = inst;
 module.exports = exports['default'];
 
 
-},{"./handlebars.runtime":13,"./handlebars/compiler/ast":15,"./handlebars/compiler/base":16,"./handlebars/compiler/compiler":18,"./handlebars/compiler/javascript-compiler":20,"./handlebars/compiler/visitor":23,"./handlebars/no-conflict":37}],13:[function(require,module,exports){
+},{"./handlebars.runtime":14,"./handlebars/compiler/ast":16,"./handlebars/compiler/base":17,"./handlebars/compiler/compiler":19,"./handlebars/compiler/javascript-compiler":21,"./handlebars/compiler/visitor":24,"./handlebars/no-conflict":38}],14:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -12943,7 +13190,7 @@ exports['default'] = inst;
 module.exports = exports['default'];
 
 
-},{"./handlebars/base":14,"./handlebars/exception":27,"./handlebars/no-conflict":37,"./handlebars/runtime":38,"./handlebars/safe-string":39,"./handlebars/utils":40}],14:[function(require,module,exports){
+},{"./handlebars/base":15,"./handlebars/exception":28,"./handlebars/no-conflict":38,"./handlebars/runtime":39,"./handlebars/safe-string":40,"./handlebars/utils":41}],15:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -13049,7 +13296,7 @@ exports.createFrame = _utils.createFrame;
 exports.logger = _logger2['default'];
 
 
-},{"./decorators":25,"./exception":27,"./helpers":28,"./logger":36,"./utils":40}],15:[function(require,module,exports){
+},{"./decorators":26,"./exception":28,"./helpers":29,"./logger":37,"./utils":41}],16:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -13082,7 +13329,7 @@ exports['default'] = AST;
 module.exports = exports['default'];
 
 
-},{}],16:[function(require,module,exports){
+},{}],17:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -13132,7 +13379,7 @@ function parse(input, options) {
 }
 
 
-},{"../utils":40,"./helpers":19,"./parser":21,"./whitespace-control":24}],17:[function(require,module,exports){
+},{"../utils":41,"./helpers":20,"./parser":22,"./whitespace-control":25}],18:[function(require,module,exports){
 /* global define */
 'use strict';
 
@@ -13300,7 +13547,7 @@ exports['default'] = CodeGen;
 module.exports = exports['default'];
 
 
-},{"../utils":40,"source-map":45}],18:[function(require,module,exports){
+},{"../utils":41,"source-map":46}],19:[function(require,module,exports){
 /* eslint-disable new-cap */
 
 'use strict';
@@ -13875,7 +14122,7 @@ function transformLiteralToPath(sexpr) {
 }
 
 
-},{"../exception":27,"../utils":40,"./ast":15}],19:[function(require,module,exports){
+},{"../exception":28,"../utils":41,"./ast":16}],20:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -14107,7 +14354,7 @@ function preparePartialBlock(open, program, close, locInfo) {
 }
 
 
-},{"../exception":27}],20:[function(require,module,exports){
+},{"../exception":28}],21:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -15237,7 +15484,7 @@ exports['default'] = JavaScriptCompiler;
 module.exports = exports['default'];
 
 
-},{"../base":14,"../exception":27,"../utils":40,"./code-gen":17}],21:[function(require,module,exports){
+},{"../base":15,"../exception":28,"../utils":41,"./code-gen":18}],22:[function(require,module,exports){
 // File ignored in coverage tests via setting in .istanbul.yml
 /* Jison generated parser */
 "use strict";
@@ -15978,7 +16225,7 @@ var handlebars = (function () {
 module.exports = exports["default"];
 
 
-},{}],22:[function(require,module,exports){
+},{}],23:[function(require,module,exports){
 /* eslint-disable new-cap */
 'use strict';
 
@@ -16166,7 +16413,7 @@ PrintVisitor.prototype.HashPair = function (pair) {
 /* eslint-enable new-cap */
 
 
-},{"./visitor":23}],23:[function(require,module,exports){
+},{"./visitor":24}],24:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -16308,7 +16555,7 @@ exports['default'] = Visitor;
 module.exports = exports['default'];
 
 
-},{"../exception":27}],24:[function(require,module,exports){
+},{"../exception":28}],25:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -16531,7 +16778,7 @@ exports['default'] = WhitespaceControl;
 module.exports = exports['default'];
 
 
-},{"./visitor":23}],25:[function(require,module,exports){
+},{"./visitor":24}],26:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -16549,7 +16796,7 @@ function registerDefaultDecorators(instance) {
 }
 
 
-},{"./decorators/inline":26}],26:[function(require,module,exports){
+},{"./decorators/inline":27}],27:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -16580,7 +16827,7 @@ exports['default'] = function (instance) {
 module.exports = exports['default'];
 
 
-},{"../utils":40}],27:[function(require,module,exports){
+},{"../utils":41}],28:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -16636,7 +16883,7 @@ exports['default'] = Exception;
 module.exports = exports['default'];
 
 
-},{}],28:[function(require,module,exports){
+},{}],29:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -16684,7 +16931,7 @@ function registerDefaultHelpers(instance) {
 }
 
 
-},{"./helpers/block-helper-missing":29,"./helpers/each":30,"./helpers/helper-missing":31,"./helpers/if":32,"./helpers/log":33,"./helpers/lookup":34,"./helpers/with":35}],29:[function(require,module,exports){
+},{"./helpers/block-helper-missing":30,"./helpers/each":31,"./helpers/helper-missing":32,"./helpers/if":33,"./helpers/log":34,"./helpers/lookup":35,"./helpers/with":36}],30:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -16725,7 +16972,7 @@ exports['default'] = function (instance) {
 module.exports = exports['default'];
 
 
-},{"../utils":40}],30:[function(require,module,exports){
+},{"../utils":41}],31:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -16821,7 +17068,7 @@ exports['default'] = function (instance) {
 module.exports = exports['default'];
 
 
-},{"../exception":27,"../utils":40}],31:[function(require,module,exports){
+},{"../exception":28,"../utils":41}],32:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -16848,7 +17095,7 @@ exports['default'] = function (instance) {
 module.exports = exports['default'];
 
 
-},{"../exception":27}],32:[function(require,module,exports){
+},{"../exception":28}],33:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -16879,7 +17126,7 @@ exports['default'] = function (instance) {
 module.exports = exports['default'];
 
 
-},{"../utils":40}],33:[function(require,module,exports){
+},{"../utils":41}],34:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -16907,7 +17154,7 @@ exports['default'] = function (instance) {
 module.exports = exports['default'];
 
 
-},{}],34:[function(require,module,exports){
+},{}],35:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -16921,7 +17168,7 @@ exports['default'] = function (instance) {
 module.exports = exports['default'];
 
 
-},{}],35:[function(require,module,exports){
+},{}],36:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -16956,7 +17203,7 @@ exports['default'] = function (instance) {
 module.exports = exports['default'];
 
 
-},{"../utils":40}],36:[function(require,module,exports){
+},{"../utils":41}],37:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -17005,7 +17252,7 @@ exports['default'] = logger;
 module.exports = exports['default'];
 
 
-},{"./utils":40}],37:[function(require,module,exports){
+},{"./utils":41}],38:[function(require,module,exports){
 (function (global){
 /* global window */
 'use strict';
@@ -17029,7 +17276,7 @@ module.exports = exports['default'];
 
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],38:[function(require,module,exports){
+},{}],39:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -17338,7 +17585,7 @@ function executeDecorators(fn, prog, container, depths, data, blockParams) {
 }
 
 
-},{"./base":14,"./exception":27,"./utils":40}],39:[function(require,module,exports){
+},{"./base":15,"./exception":28,"./utils":41}],40:[function(require,module,exports){
 // Build out our basic SafeString type
 'use strict';
 
@@ -17355,7 +17602,7 @@ exports['default'] = SafeString;
 module.exports = exports['default'];
 
 
-},{}],40:[function(require,module,exports){
+},{}],41:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -17481,7 +17728,7 @@ function appendContextPath(contextPath, id) {
 }
 
 
-},{}],41:[function(require,module,exports){
+},{}],42:[function(require,module,exports){
 // USAGE:
 // var handlebars = require('handlebars');
 /* eslint-disable no-var */
@@ -17508,7 +17755,7 @@ if (typeof require !== 'undefined' && require.extensions) {
   require.extensions['.hbs'] = extension;
 }
 
-},{"../dist/cjs/handlebars":12,"../dist/cjs/handlebars/compiler/printer":22,"fs":10}],42:[function(require,module,exports){
+},{"../dist/cjs/handlebars":13,"../dist/cjs/handlebars/compiler/printer":23,"fs":10}],43:[function(require,module,exports){
 /*!
  * jQuery JavaScript Library v3.2.1
  * https://jquery.com/
@@ -27763,7 +28010,7 @@ if ( !noGlobal ) {
 return jQuery;
 } );
 
-},{}],43:[function(require,module,exports){
+},{}],44:[function(require,module,exports){
 (function (process){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -27991,7 +28238,7 @@ var substr = 'ab'.substr(-1) === 'b'
 ;
 
 }).call(this,require('_process'))
-},{"_process":44}],44:[function(require,module,exports){
+},{"_process":45}],45:[function(require,module,exports){
 // shim for using process in browser
 var process = module.exports = {};
 
@@ -28177,7 +28424,7 @@ process.chdir = function (dir) {
 };
 process.umask = function() { return 0; };
 
-},{}],45:[function(require,module,exports){
+},{}],46:[function(require,module,exports){
 /*
  * Copyright 2009-2011 Mozilla Foundation and contributors
  * Licensed under the New BSD license. See LICENSE.txt or:
@@ -28187,7 +28434,7 @@ exports.SourceMapGenerator = require('./source-map/source-map-generator').Source
 exports.SourceMapConsumer = require('./source-map/source-map-consumer').SourceMapConsumer;
 exports.SourceNode = require('./source-map/source-node').SourceNode;
 
-},{"./source-map/source-map-consumer":52,"./source-map/source-map-generator":53,"./source-map/source-node":54}],46:[function(require,module,exports){
+},{"./source-map/source-map-consumer":53,"./source-map/source-map-generator":54,"./source-map/source-node":55}],47:[function(require,module,exports){
 /* -*- Mode: js; js-indent-level: 2; -*- */
 /*
  * Copyright 2011 Mozilla Foundation and contributors
@@ -28296,7 +28543,7 @@ define(function (require, exports, module) {
 
 });
 
-},{"./util":55,"amdefine":8}],47:[function(require,module,exports){
+},{"./util":56,"amdefine":8}],48:[function(require,module,exports){
 /* -*- Mode: js; js-indent-level: 2; -*- */
 /*
  * Copyright 2011 Mozilla Foundation and contributors
@@ -28444,7 +28691,7 @@ define(function (require, exports, module) {
 
 });
 
-},{"./base64":48,"amdefine":8}],48:[function(require,module,exports){
+},{"./base64":49,"amdefine":8}],49:[function(require,module,exports){
 /* -*- Mode: js; js-indent-level: 2; -*- */
 /*
  * Copyright 2011 Mozilla Foundation and contributors
@@ -28519,7 +28766,7 @@ define(function (require, exports, module) {
 
 });
 
-},{"amdefine":8}],49:[function(require,module,exports){
+},{"amdefine":8}],50:[function(require,module,exports){
 /* -*- Mode: js; js-indent-level: 2; -*- */
 /*
  * Copyright 2011 Mozilla Foundation and contributors
@@ -28638,7 +28885,7 @@ define(function (require, exports, module) {
 
 });
 
-},{"amdefine":8}],50:[function(require,module,exports){
+},{"amdefine":8}],51:[function(require,module,exports){
 /* -*- Mode: js; js-indent-level: 2; -*- */
 /*
  * Copyright 2014 Mozilla Foundation and contributors
@@ -28726,7 +28973,7 @@ define(function (require, exports, module) {
 
 });
 
-},{"./util":55,"amdefine":8}],51:[function(require,module,exports){
+},{"./util":56,"amdefine":8}],52:[function(require,module,exports){
 /* -*- Mode: js; js-indent-level: 2; -*- */
 /*
  * Copyright 2011 Mozilla Foundation and contributors
@@ -28848,7 +29095,7 @@ define(function (require, exports, module) {
 
 });
 
-},{"amdefine":8}],52:[function(require,module,exports){
+},{"amdefine":8}],53:[function(require,module,exports){
 /* -*- Mode: js; js-indent-level: 2; -*- */
 /*
  * Copyright 2011 Mozilla Foundation and contributors
@@ -29927,7 +30174,7 @@ define(function (require, exports, module) {
 
 });
 
-},{"./array-set":46,"./base64-vlq":47,"./binary-search":49,"./quick-sort":51,"./util":55,"amdefine":8}],53:[function(require,module,exports){
+},{"./array-set":47,"./base64-vlq":48,"./binary-search":50,"./quick-sort":52,"./util":56,"amdefine":8}],54:[function(require,module,exports){
 /* -*- Mode: js; js-indent-level: 2; -*- */
 /*
  * Copyright 2011 Mozilla Foundation and contributors
@@ -30328,7 +30575,7 @@ define(function (require, exports, module) {
 
 });
 
-},{"./array-set":46,"./base64-vlq":47,"./mapping-list":50,"./util":55,"amdefine":8}],54:[function(require,module,exports){
+},{"./array-set":47,"./base64-vlq":48,"./mapping-list":51,"./util":56,"amdefine":8}],55:[function(require,module,exports){
 /* -*- Mode: js; js-indent-level: 2; -*- */
 /*
  * Copyright 2011 Mozilla Foundation and contributors
@@ -30744,7 +30991,7 @@ define(function (require, exports, module) {
 
 });
 
-},{"./source-map-generator":53,"./util":55,"amdefine":8}],55:[function(require,module,exports){
+},{"./source-map-generator":54,"./util":56,"amdefine":8}],56:[function(require,module,exports){
 /* -*- Mode: js; js-indent-level: 2; -*- */
 /*
  * Copyright 2011 Mozilla Foundation and contributors
@@ -31116,7 +31363,7 @@ define(function (require, exports, module) {
 
 });
 
-},{"amdefine":8}],56:[function(require,module,exports){
+},{"amdefine":8}],57:[function(require,module,exports){
 //     Underscore.js 1.8.3
 //     http://underscorejs.org
 //     (c) 2009-2015 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors

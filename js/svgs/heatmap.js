@@ -95,11 +95,12 @@ heatmap.draw = function (jsondata, samplelist, genelist,mycolors) {
     
     var resp = d3.select("#heatmap")
         .append('div')
-        .attr("id", "heatmapsvg")
+        .attr("id", "heatmapsvgdiv")
         .attr('class', 'svg-container'); //container class to make it responsive
 
     var svg = resp
         .append("svg")
+        .attr("id","heatmapsvg")
         .attr('class', 'canvas svg-content-responsive')
         .attr('preserveAspectRatio', 'xMinYMin meet')
         .attr('viewBox', [0, 0, svgWidth, svgHeight].join(' '))

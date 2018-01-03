@@ -26,6 +26,23 @@ DesPlot.init = function(json,parameter,svg,pyScript,onError){
             mainframe.setElement('#'+svg).renderDesPlot();
             
             BC.init(data,sccolor,bccolor);
+
+
+            d3.select('#btnSave').on('click', function() {
+              var configsc = {
+                filename: 'scatterplot',
+              };
+              var configbc = {
+                filename: 'barchart',
+              };
+              var confighm = {
+                filename: 'heatmap',
+              };
+              d3_save_svg.save(d3.select('#scatterplotsvg').node(), configsc);
+              d3_save_svg.save(d3.select('#barchartsvg').node(), configbc);
+              d3_save_svg.save(d3.select('#heatmapsvg').node(), confighm);
+            });
+
         },
         error: function(e){
             onError(e);
