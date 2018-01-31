@@ -136,6 +136,8 @@ heatmap.draw = function (jsondata, samplelist, genelist,mycolors) {
             return i * gridheight;
         })
         .style("text-anchor", "end")
+        .style("font-size", 8)
+        .style("font-family", 'Montserrat, Arial')
         .attr("transform", "translate(-6," + gridheight / 1.5 + ")")
         .attr("class", function (d, i) {
             return "rowLabel r" + i;
@@ -162,6 +164,8 @@ heatmap.draw = function (jsondata, samplelist, genelist,mycolors) {
             return i * gridwidth;
         })
         .style("text-anchor", "left")
+        .style("font-size", 8)
+        .style("font-family", 'Montserrat, Arial')
         .attr("transform", "translate(" + gridwidth / 2 + ", -6 ) rotate (-90)")
         .attr("class", function (d, i) {
             return "colLabel c" + i;
@@ -200,7 +204,8 @@ heatmap.draw = function (jsondata, samplelist, genelist,mycolors) {
         .attr("height", gridheight)
         .style("fill", mycolors[5])
         .on('mouseover', SP.onMouseOverNode)
-        .on('mouseout', SP.onMouseOut);
+        .on('mouseout', SP.onMouseOut)
+        .on('click',SP.onMouseClick);
 
     cells.transition().duration(1000)
         .style("fill", function (d) {

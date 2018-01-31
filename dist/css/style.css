@@ -22,6 +22,10 @@ body {
     overflow:hidden;
 }
 
+#sidebar{
+    word-wrap: break-word;
+}
+
 .tip {
     text-align: center;
     border-right: solid 1px #DDD;

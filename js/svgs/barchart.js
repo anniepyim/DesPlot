@@ -102,6 +102,8 @@ BC.init = function (jsondata,colorrange,color) {
       .attr("x", 0)
       .attr("y", barH / 2)
       .attr("dy", ".35em")
+      .style("font-size", 14)
+      .style("font-family", 'Montserrat, Arial')
       .text(function(d) { return d.process+" ("+d.count+")"; })
       .on("click", click);
     

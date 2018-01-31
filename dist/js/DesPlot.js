@@ -175,6 +175,8 @@ BC.init = function (jsondata,colorrange,color) {
       .attr("x", 0)
       .attr("y", barH / 2)
       .attr("dy", ".35em")
+      .style("font-size", 14)
+      .style("font-family", 'Montserrat, Arial')
       .text(function(d) { return d.process+" ("+d.count+")"; })
       .on("click", click);
     
@@ -424,6 +426,8 @@ heatmap.draw = function (jsondata, samplelist, genelist,mycolors) {
             return i * gridheight;
         })
         .style("text-anchor", "end")
+        .style("font-size", 8)
+        .style("font-family", 'Montserrat, Arial')
         .attr("transform", "translate(-6," + gridheight / 1.5 + ")")
         .attr("class", function (d, i) {
             return "rowLabel r" + i;
@@ -450,6 +454,8 @@ heatmap.draw = function (jsondata, samplelist, genelist,mycolors) {
             return i * gridwidth;
         })
         .style("text-anchor", "left")
+        .style("font-size", 8)
+        .style("font-family", 'Montserrat, Arial')
         .attr("transform", "translate(" + gridwidth / 2 + ", -6 ) rotate (-90)")
         .attr("class", function (d, i) {
             return "colLabel c" + i;
@@ -488,7 +494,8 @@ heatmap.draw = function (jsondata, samplelist, genelist,mycolors) {
         .attr("height", gridheight)
         .style("fill", mycolors[5])
         .on('mouseover', SP.onMouseOverNode)
-        .on('mouseout', SP.onMouseOut);
+        .on('mouseout', SP.onMouseOut)
+        .on('click',SP.onMouseClick);
 
     cells.transition().duration(1000)
         .style("fill", function (d) {
@@ -690,6 +697,8 @@ SP.drawaxis = function () {
         .attr("x", SPwidth)
         .attr("y", -6)
         .style("text-anchor", "end")
+        .style("font-size", 14)
+        .style("font-family", 'Montserrat, Arial')
         .text("Sample");
 
     SPsvg.append("g")
@@ -700,7 +709,17 @@ SP.drawaxis = function () {
         .attr("y", 6)
         .attr("dy", ".71em")
         .style("text-anchor", "end")
+        .style("font-size", 14)
+        .style("font-family", 'Montserrat, Arial')
         .text("Log2 Fold change");
+
+    SPsvg.select(".x.axis")
+        .style("font-size", 14)
+        .style("font-family", 'Montserrat, Arial');
+
+    SPsvg.select(".y.axis")
+        .style("font-size", 14)
+        .style("font-family", 'Montserrat, Arial');
 
     SPsvg.append("rect")
         .attr("class", "SPrect")
@@ -720,7 +739,9 @@ SP.drawaxis = function () {
 
     SPsvg.append("text")
         .attr("class", "SPtitle")
-        .attr("transform", "translate(" + (SPwidth - 220) + ",13)");
+        .attr("transform", "translate(" + (SPwidth - 220) + ",13)")
+        .style("font-size", 14)
+        .style("font-family", 'Montserrat, Arial');
   
     SPsvg.append("svg:rect")
           .attr("class", "zoom y box")
@@ -738,6 +759,8 @@ SP.drawaxis = function () {
         .style("cursor","pointer")
         .style("text-decoration","underline")
         .style("font-weight","bold")
+        .style("font-size", 14)
+        .style("font-family", 'Montserrat, Arial')
         .text("Reset Axis")
         .on("click", resetAxis);
 
@@ -863,7 +886,8 @@ SP.update = function (jsondata, nfunc, ncolor,colorrange) {
             .style("stroke", "black")
             .style("stroke-width", 0.5)
             .on('mouseover', SP.onMouseOverNode)
-            .on('mouseout', SP.onMouseOut);
+            .on('mouseout', SP.onMouseOut)
+            .on('click',SP.onMouseClick);
         
         if (zoom){
             
@@ -917,16 +941,31 @@ SP.update = function (jsondata, nfunc, ncolor,colorrange) {
         zoom_update();
     }
 
-        var svgData = $("#scatterplotsvg")[0].outerHTML;
-        var svgBlob = new Blob([svgData], {type:"image/svg+xml;charset=utf-8"});
-        var svgUrl = URL.createObjectURL(svgBlob);
-        var downloadLink = document.createElement("a");
-        downloadLink.href = svgUrl;
-        downloadLink.download = "newesttree.svg";
-        document.body.appendChild(downloadLink);
-        downloadLink.click();
-        document.body.removeChild(downloadLink);    
+    function reset(event){
+        if (event.target.getAttribute('class') != "node" && event.target.getAttribute('class') != "cell"){
+            if(clickEvent.holdClick) return;
+            
+            //Clear tooltip
+            $('.tip').empty();
+            
+            highlight("");
 
+            d3.selectAll("circle.node").on('mouseout', SP.onMouseOut);
+            d3.selectAll("circle.node").on('mouseover', SP.onMouseOverNode);
+
+            d3.selectAll("rect.cell").on('mouseout', SP.onMouseOut);
+            d3.selectAll("rect.cell").on('mouseover', SP.onMouseOverNode);
+        }
+
+    }
+
+    $("#scatterplotsvg").click(function(event){
+        reset(event);        
+    });
+
+    $("#heatmapsvg").click(function(event){
+        reset(event);        
+    });
 };
 
 var resetAxis = function(){
@@ -947,6 +986,10 @@ SP.onMouseOut = function(node){
 
 SP.onMouseOverNode = function(node){
     
+    highlight("");
+    //Clear tooltip
+    $('.tip').empty();
+
     if(clickEvent.holdClick) return;
     
     //Init tooltip if hover over gene
@@ -954,6 +997,29 @@ SP.onMouseOverNode = function(node){
         $('.tip').append(tipTemplate(node));
     
     highlight(node.gene);
+
+};
+
+SP.onMouseClick = function(node){
+    
+    highlight("");
+    //Clear tooltip
+    $('.tip').empty();
+
+    if(clickEvent.holdClick) return;
+    
+    //Init tooltip if hover over gene
+    if(!_.isUndefined(node.gene))
+        $('.tip').append(tipTemplate(node));
+    
+    highlight(node.gene);
+
+    //d3.select(this).on("mouseout", null);
+    d3.selectAll("circle.node").on("mouseout", null);
+    d3.selectAll("circle.node").on('mouseover', null);
+
+    d3.selectAll("rect.cell").on("mouseout", null);
+    d3.selectAll("rect.cell").on('mouseover', null);
 
 };
 
@@ -1045,7 +1111,7 @@ this["Templates"]["DesPlot_tooltip"] = Handlebars.template({"1":function(contain
     + alias4(((helper = (helper = helpers.log2 || (depth0 != null ? depth0.log2 : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"log2","hash":{},"data":data}) : helper)))
     + "</div>\n\n<div class=\"col-md-6 miniTitle\">\n    Pvalue\n</div>\n                \n<div class=\"col-md-6 info\">"
     + alias4(((helper = (helper = helpers.pvalue || (depth0 != null ? depth0.pvalue : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"pvalue","hash":{},"data":data}) : helper)))
-    + "</div>\n\n<div class=\"col-md-12 miniTitle\">\n    mutation\n</div>\n                \n<div class=\"col-md-12 mutation\">\n"
+    + "</div>\n\n<div class=\"col-md-12 miniTitle\">\n    mutation\n</div>\n                \n<div class=\"col-md-12 mutation\" style=\"wordWrap: break-word\">\n"
     + ((stack1 = helpers.each.call(alias1,(depth0 != null ? depth0.mutation : depth0),{"name":"each","hash":{},"fn":container.program(1, data, 0),"inverse":container.noop,"data":data})) != null ? stack1 : "")
     + "\n</div>\n";
 },"useData":true});
