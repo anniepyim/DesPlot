@@ -115,9 +115,15 @@ BC.init = function (jsondata,colorrange,color) {
         d3.select("#heatmapsvg").remove();
         heatmap.processData(jsondata, d.process,colorrange);
     }
-
+    
     saveTextAsFile = function(){
         
+        try{
+            /*var up = document.getElementById('up').value;
+            if (up === "") up = 1.5;
+            var down = document.getElementById('down').value;
+            if (down === "") down = -1.5;   
+            var result = "";*/
             var result = "";
             var up = 1.5,
                 down = -1.5;
@@ -184,14 +190,15 @@ BC.init = function (jsondata,colorrange,color) {
                 downloadLink.onclick = destroyClickedElement;
                 document.body.appendChild(downloadLink);
                 downloadLink.click();
-        };
+        }
+        catch(err){
+            console.log(err);
+        }
+    };
 
-    $("#downloadText").click(saveTextAsFile);
+    $("#downloadText").click(saveTextAsFile)
 
 };
-
-
-
 	function destroyClickedElement(event)
 	{
 		// remove the link from the DOM

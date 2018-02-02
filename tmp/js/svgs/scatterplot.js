@@ -304,11 +304,11 @@ SP.update = function (jsondata, nfunc, ncolor,colorrange) {
     }
 
     function reset(event){
-        if (event.target.getAttribute('class') != "node" && event.target.getAttribute('class') != "cell" && event.target.getAttribute('class') != "resetAxis"){
+        if (event.target.getAttribute('class') != "node" && event.target.getAttribute('class') != "cell"){
             if(clickEvent.holdClick) return;
             
             //Clear tooltip
-            $('#rowtip1').empty();
+            $('.tip').empty();
             
             highlight("");
 
@@ -340,7 +340,7 @@ SP.onMouseOut = function(node){
     if(clickEvent.holdClick) return;
     
     //Clear tooltip
-    $('#rowtip1').empty();
+    $('.tip').empty();
     
     highlight("");
 };
@@ -350,13 +350,13 @@ SP.onMouseOverNode = function(node){
     
     highlight("");
     //Clear tooltip
-    $('#rowtip1').empty();
+    $('.tip').empty();
 
     if(clickEvent.holdClick) return;
     
     //Init tooltip if hover over gene
     if(!_.isUndefined(node.gene))
-        $('#rowtip1').append(tipTemplate(node));
+        $('.tip').append(tipTemplate(node));
     
     highlight(node.gene);
 
@@ -366,13 +366,13 @@ SP.onMouseClick = function(node){
     
     highlight("");
     //Clear tooltip
-    $('#rowtip1').empty();
+    $('.tip').empty();
 
     if(clickEvent.holdClick) return;
     
     //Init tooltip if hover over gene
     if(!_.isUndefined(node.gene))
-        $('#rowtip1').append(tipTemplate(node));
+        $('.tip').append(tipTemplate(node));
     
     highlight(node.gene);
 

@@ -15,62 +15,52 @@
     <div class = "container" id="content">
         <!-- Page Content -->     
         <div class="container main">
+            
                 <div class = "col-md-2" id="sidebar">
-                    <div id="rowtip1" class="row tip" style="margin-top:0px;"></div>
+                    <div id="rowtip1" class="row tip">
+                        <div class="col-md-12 title">TRNT1</div>
+
+                    <div class="col-md-12 process">Translation</div>
+
+                    <div class="col-md-12 function"></div>
+
+                    <div class="col-md-6 miniTitle">
+                        Log2 FC
+                    </div>
+                                    
+                    <div class="col-md-6 info">0.216</div>
+
+                    <div class="col-md-6 miniTitle">
+                        Pvalue
+                    </div>
+                                    
+                    <div class="col-md-6 info">0.026</div>
+
+                    <div class="col-md-12 miniTitle">
+                        mutation
+                    </div>
+                                    
+                    <div class="col-md-12 mutation">
+                        chr3 3170792 C|T: MODERATE: missense_variant; chr3 3190451 G|A: MODIFIER: 3_prime_UTR_variant<br>
+
+                    </div>
+                    </div>
                     <div id="rowtip2" class="row tip" style="margin-top:0px;"></div>
                     <div class="col-md-12" id="warning" style="margin-top:10px">
                         </div>
                     <div class="col-md-12" style="margin-top:10px;text-align: center">
                         <button id = "downloadsvg" class="btn btn-success">Download</button>
                     </div> 
-                    <div class="col-md-12" style="margin-top:10px;text-align: center">
-                        <button id = "downloadText" class="btn btn-success">Download text</button>
-                    </div> 
                 </div>
                 <div class="col-md-10">
                     <div id = "svgs-all" class="col-md-12">
                     </div>   
                 </div>
+            
         </div>
     </div>
     <canvas width=1000 height = 500 id="canvasDownload" style="display:none"></canvas>   
         
-    <script src="./js/DesPlot.js" ></script>
-    <script>
-        var json = ["RPE-21-3-c2","RPE-21-3-c1","RPE-21-3-c1-p"],
-            sessionid = "test",
-            organism = "Human",
-            host = "localhost",
-            port = "3306",
-            user = "root",
-            passwd = "",
-            unix_socket = "/tmp/mysql.sock",
-            upper_limit = 20,
-            lower_limit = -20;
-
-        var parameter = 'jsons=' + JSON.stringify(json) + '&organism='+ organism +'&sessionid='+ sessionid + '&host='+host + '&port='+port + '&user='+user + '&passwd='+passwd + '&unix_socket='+unix_socket + '&lower_limit='+lower_limit + '&upper_limit='+upper_limit;
-
-        var svg = "svgs-all";
-
-        var pyScript = "./python/SP_mysql.py";
-        
-        //Add loading gif here
-        var el = document.getElementById( svg );
-        while (el.hasChildNodes()) {el.removeChild(el.firstChild);}
-        var div = document.createElement('div');
-        div.setAttribute("align", "center");
-        div.innerHTML ='<img id="loading" src="./img/loading.gif">';
-        el.appendChild(div);
-        
-        function onError(res) {
-            d3.select('#loading').remove();
-            document.getElementById('warning').innerHTML="<font color=\"red\">"+res;
-            throw new Error("Something went badly wrong!");
-        }
-
-        DesPlot.init(json,parameter,svg,pyScript,onError);
- 
-    </script>
     <script src = "./js/html2canvas.js"></script>
     <script src = "./js/saveSvgAsPng.js"></script>
     <script>

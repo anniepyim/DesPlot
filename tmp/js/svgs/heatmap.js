@@ -26,6 +26,8 @@ heatmap.processData = function (jsondata, nfunc,colorrange) {
             return d.gene;
         })
         .entries(newdata);
+    
+    newdata = newdata.sort(function(a, b) { return d3.ascending(a.sampleID_index, b.sampleID_index); });
 
     var sampledata = d3.nest()
         .key(function (d) {
@@ -91,8 +93,6 @@ heatmap.draw = function (jsondata, samplelist, genelist,mycolors) {
         gridheight = HMheight / samplelist.length, 
         gridwidth = HMwidth / genelist.length, 
         legendElementWidth = HMwidth / 11;
-    
-    d3.select("#heatmapsvgdiv").remove();
     
     var resp = d3.select("#scheatmap")
         .append('div')

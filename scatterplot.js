@@ -149,6 +149,9 @@ SP.update = function (jsondata, nfunc, ncolor,colorrange) {
         d.log2 = +d.log2;
     });
 
+    // Copy-on-write since tweens are evaluated after a delay
+    data = data.sort(function(a, b) { return d3.ascending(a.sampleID_index, b.sampleID_index); });
+
     x.domain(data.map(function (d) {
         return d.sampleID;
     }));
@@ -191,7 +194,7 @@ SP.update = function (jsondata, nfunc, ncolor,colorrange) {
                 process: d.process,
                 gene_function: d.gene_function,
                 gene: d.gene,
-                mutation: d.mutation.split(',')
+                mutation: d.mutation.split(';')
             };
         });
     
@@ -304,8 +307,7 @@ SP.update = function (jsondata, nfunc, ncolor,colorrange) {
     }
 
     function reset(event){
-        if (event.target.getAttribute('class') != "node" && event.target.getAttribute('class') != "cell" && event.target.getAttribute('class') != "resetAxis"){
-            if(clickEvent.holdClick) return;
+        if (event.target.getAttribute('class') != "node" && !event.target.getAttribute('class').includes("cell")){
             
             //Clear tooltip
             $('#rowtip1').empty();
@@ -321,11 +323,15 @@ SP.update = function (jsondata, nfunc, ncolor,colorrange) {
 
     }
 
-    $("#scatterplotsvg").click(function(event){
+    $("#scatterplot").click(function(event){
         reset(event);        
     });
 
-    $("#heatmapsvg").click(function(event){
+    $("#barchart").click(function(event){
+        reset(event);        
+    });
+
+    $("#scheatmap").click(function(event){
         reset(event);        
     });
 };

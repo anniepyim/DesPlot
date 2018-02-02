@@ -10,30 +10,33 @@ import pymysql
 
 #start_time = time.time()
 
-form = cgi.FieldStorage()
-jsons = form.getvalue('jsons')
-sampleID = json.loads(jsons)
-organism = form.getvalue('organism')
-sessionid = form.getvalue('sessionid')
-host = form.getvalue('host')
-port = form.getvalue('port')
-user = form.getvalue('user')
-passwd = form.getvalue('passwd')
-unix_socket = form.getvalue('unix_socket')
-upper_limit = float(form.getvalue('upper_limit'))
-lower_limit = float(form.getvalue('lower_limit'))
+# form = cgi.FieldStorage()
+# jsons = form.getvalue('jsons')
+# sampleID = json.loads(jsons)
+# organism = form.getvalue('organism')
+# sessionid = form.getvalue('sessionid')
+# host = form.getvalue('host')
+# port = form.getvalue('port')
+# user = form.getvalue('user')
+# passwd = form.getvalue('passwd')
+# unix_socket = form.getvalue('unix_socket')
+# upper_limit = float(form.getvalue('upper_limit'))
+# lower_limit = float(form.getvalue('lower_limit'))
+
+#sampleID = ['RPE-21-3-c1','RPE-21-3-c2','RPE-21-3-c1-p']
+
+sampleID = {'group2':['HCT116-21-3-c1', 'HCT116-21-3-c3', 'HCT116-5-4', 'HCT116-5-4-p'],'group1':['HCT116-8-3-c3', 'HCT116-8-3-c4', 'RPE-21-3-c1', 'RPE-21-3-c1-p','RPE-21-3-c2', 'RPE-5-3-12-3-p']}
+sessionid= "test"
+organism = "Human"
+host = "localhost"
+port = 3306
+user = "root"
+passwd = ""
+unix_socket = "/tmp/mysql.sock"
+upper_limit = 2
+lower_limit = -2
 
 
-#sampleID = {'group1':['HCT116-21-3-c1', 'HCT116-21-3-c3', 'HCT116-5-4', 'HCT116-5-4-p'],'group2':['HCT116-8-3-c3', 'HCT116-8-3-c4', 'RPE-21-3-c1', 'RPE-21-3-c1-p','RPE-21-3-c2', 'RPE-5-3-12-3-p']}
-#sessionid= "test"
-#organism = "Human"
-#host = "localhost"
-#port = 3306
-#user = "root"
-#passwd = ""
-#unix_socket = "/tmp/mysql.sock"
-#upper_limit = 2
-#lower_limit = -2
 
 isGroup = isinstance(sampleID, dict)
 
@@ -41,11 +44,12 @@ if (isGroup):
     sampleID_index = pd.DataFrame({'samples' : sampleID})
     sampleID_index['sampleID'] = sampleID_index.index
     sampleID_index = sampleID_index.reset_index()
-    sampleID_index['sampleID_index']=sampleID_index.index
+    sampleID_index['index']=sampleID_index.index
     sampleID_index.drop('samples',axis=1,inplace=True)
 else:
     sampleID_index = pd.DataFrame({'sampleID' : sampleID})
     sampleID_index['sampleID_index'] = sampleID_index.index
+
 
 if (isGroup):
     grouping = pd.DataFrame()
@@ -64,7 +68,7 @@ if (isGroup):
 conn = pymysql.connect(host=host, port=port, user=user, passwd=passwd, db=organism, unix_socket=unix_socket)
 query = 'SELECT target_exp.sampleID, target_exp.gene, target_exp.log2, target_exp.pvalue, target_mut.mutation FROM target_exp LEFT JOIN target_mut ON target_exp.sampleID=target_mut.sampleID AND target_exp.gene=target_mut.gene WHERE target_exp.sampleID in ('+','.join(map("'{0}'".format, sampleID))+') AND target_exp.userID in ("mitox","'+sessionid+'")'
 main = pd.read_sql(query, con=conn)
-query2 = 'SELECT gene, process, gene_function from target'
+query2 = 'SELECT gene, process from target'
 genefunc = pd.read_sql(query2, con=conn)
 conn.close()
 
@@ -84,14 +88,14 @@ if (isGroup):
     main['mutation'] = main['mutation'].astype(int).astype(str) + ' mutation(s)'
 
 main.fillna('',inplace=True)
-main = pd.merge(genefunc,main,on="gene",how='inner')
-main = pd.merge(sampleID_index,main,on="sampleID",how='outer')        
-main.sort_values(["gene","sampleID_index"], inplace=True)
+main = pd.merge(genefunc,main,on="gene",how='inner') 
+main = pd.merge(sampleID_index,main,on="sampleID",how='outer')    
+main.sort_values(["gene","sampleID"], inplace=True)
 main = main.to_json(orient='records')
 
-print 'Content-Type: application/json\n\n'
-print (main)
-#print "Content-type: text/html\n"
-#print "<html>"
-#print main
-#print "</html>"
+# print 'Content-Type: application/json\n\n'
+# print (main)
+print "Content-type: text/html\n"
+print "<html>"
+print sampleID_index
+print "</html>"

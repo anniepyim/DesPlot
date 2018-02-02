@@ -188,65 +188,82 @@ BC.init = function (jsondata,colorrange,color) {
         d3.select("#heatmapsvg").remove();
         heatmap.processData(jsondata, d.process,colorrange);
     }
-    
 
-};
-
-saveTextAsFile = function(){
-    try{
-    var up = document.getElementById('up').value;
-    if (up === "") up = 1.5;
-    var down = document.getElementById('down').value;
-    if (down === "") down = -1.5;   
-    var result = "";
-    sampledata.forEach(function(dp){
-        var key = dp.key;
-        var upgenes = [], downgenes = [], mutation=[];
-        newdata.forEach(function(d){
-            if (d.sampleID == key){
-                if (d.log2 >= up) upgenes.push(d);
-                if (d.log2 <= down) downgenes.push(d);
-                if (d.mutation !== "") mutation.push (d);
-            }
-        });
-        result += "Results for " + key + "\n";
-        result += "----------------------------\n\n";
-        result += "UP-REGULATED GENES:\n\n";
-        result += "GENE NAME\tCHROMOSOME\tPROCESS\tLOG2FOLD\tP-VALUE\n";
-        upgenes.forEach(function(d){
-            result += d.gene+"\t"+d.chr+"\t"+d.process+"\t"+d.log2+"\t"+d.pvalue+"\n";
-        });
-        result += "----------------------------\n\n";
-        result += "DOWN-REGULATED GENES:\n\n";
-        result += "GENE NAME\tCHROMOSOME\tPROCESS\tLOG2FOLD\tP-VALUE\n";
-        downgenes.forEach(function(d){
-            result += d.gene+"\t"+d.chr+"\t"+d.process+"\t"+d.log2+"\t"+d.pvalue+"\n";
-        });
-        result += "----------------------------\n\n";
-        result += "MUTATED GENES:\n\n";
-        result += "GENE NAME\tCHROMOSOME\tPROCESS\tVARIANT DESCRIPTION\n";
-        mutation.forEach(function(d){
-            result += d.gene+"\t"+d.chr+"\t"+d.process+"\t"+d.mutation+"\n";
-        });
-        result += "----------------------------\n";
-        result += "----------------------------\n\n";
+    saveTextAsFile = function(){
         
-    });
-    var textToWrite = result;
-		var textFileAsBlob = new Blob([textToWrite], {type:'text/plain'});
-		var fileNameToSaveAs = "Mito_variants.txt";
-		var downloadLink = document.createElement("a");
-		downloadLink.download = fileNameToSaveAs;
-		window.URL = window.URL || window.webkitURL;
-		downloadLink.href = window.URL.createObjectURL(textFileAsBlob);
-		downloadLink.onclick = destroyClickedElement;
-		document.body.appendChild(downloadLink);
-		downloadLink.click();
-    }
-    catch(err){
-        alert("Please select samples!");
-    }
+            var result = "";
+            var up = 1.5,
+                down = -1.5;
+
+            var upgenes = [], downgenes = [], mutation=[], others=[]
+            jsondata.forEach(function(d){
+                if (d.mutation !== "") mutation.push (d);
+                if (d.log2 >= up) upgenes.push(d);
+                else if (d.log2 <= down) downgenes.push(d);
+                else if (d.mutation == "") others.push(d);
+            });
+
+            mutation.sort(function(x, y){
+                return d3.ascending(x.process, y.process);
+            });
+
+            upgenes.sort(function(x, y){
+                return d3.ascending(x.process, y.process);
+            });
+
+            downgenes.sort(function(x, y){
+                return d3.ascending(x.process, y.process);
+            });
+
+            others.sort(function(x, y){
+                return d3.ascending(x.process, y.process);
+            });
+
+            result += "Results\n";
+            result += "----------------------------\n\n";
+            result += "UP-REGULATED GENES (Log2 Fold Change > 1.5):\n\n";
+            result += "GENE NAME\tPROCESS\tLOG2FOLD\tP-VALUE\n";
+            upgenes.forEach(function(d){
+                result += d.gene+"\t"+d.process+"\t"+d.log2+"\t"+d.pvalue+"\n";
+            });
+            result += "----------------------------\n\n";
+            result += "DOWN-REGULATED GENES (Log2 Fold Change < -1.5):\n\n";
+            result += "GENE NAME\tPROCESS\tLOG2FOLD\tP-VALUE\n";
+            downgenes.forEach(function(d){
+                result += d.gene+"\t"+d.process+"\t"+d.log2+"\t"+d.pvalue+"\n";
+            });
+            result += "----------------------------\n\n";
+            result += "MUTATED GENES:\n\n";
+            result += "GENE NAME\tCHROMOSOME\tPROCESS\tVARIANT DESCRIPTION\n";
+            mutation.forEach(function(d){
+                result += d.gene+"\t"+d.process+"\t"+d.log2+"\t"+d.pvalue+"\t"+d.mutation+"\n";
+            });
+            result += "----------------------------\n\n";
+            result += "OTHER GENES:\n\n";
+            result += "GENE NAME\tPROCESS\tLOG2FOLD\tP-VALUE\n";
+            others.forEach(function(d){
+                result += d.gene+"\t"+d.process+"\t"+d.log2+"\t"+d.pvalue+"\n";
+            });
+            result += "----------------------------\n";
+            result += "----------------------------\n\n";
+                
+            var textToWrite = result;
+                var textFileAsBlob = new Blob([textToWrite], {type:'text/plain'});
+                var fileNameToSaveAs = "Mito_variants.txt";
+                var downloadLink = document.createElement("a");
+                downloadLink.download = fileNameToSaveAs;
+                window.URL = window.URL || window.webkitURL;
+                downloadLink.href = window.URL.createObjectURL(textFileAsBlob);
+                downloadLink.onclick = destroyClickedElement;
+                document.body.appendChild(downloadLink);
+                downloadLink.click();
+        };
+
+    $("#downloadText").click(saveTextAsFile);
+
 };
+
+
 
 	function destroyClickedElement(event)
 	{
@@ -317,7 +334,6 @@ heatmap.processData = function (jsondata, nfunc,colorrange) {
         })
         .entries(newdata);
 
-    
     var sampledata = d3.nest()
         .key(function (d) {
             return d.sampleID;
@@ -383,7 +399,9 @@ heatmap.draw = function (jsondata, samplelist, genelist,mycolors) {
         gridwidth = HMwidth / genelist.length, 
         legendElementWidth = HMwidth / 11;
     
-    var resp = d3.select("#heatmap")
+    d3.select("#heatmapsvgdiv").remove();
+    
+    var resp = d3.select("#scheatmap")
         .append('div')
         .attr("id", "heatmapsvgdiv")
         .attr('class', 'svg-container'); //container class to make it responsive
@@ -942,11 +960,11 @@ SP.update = function (jsondata, nfunc, ncolor,colorrange) {
     }
 
     function reset(event){
-        if (event.target.getAttribute('class') != "node" && event.target.getAttribute('class') != "cell"){
+        if (event.target.getAttribute('class') != "node" && event.target.getAttribute('class') != "cell" && event.target.getAttribute('class') != "resetAxis"){
             if(clickEvent.holdClick) return;
             
             //Clear tooltip
-            $('.tip').empty();
+            $('#rowtip1').empty();
             
             highlight("");
 
@@ -978,7 +996,7 @@ SP.onMouseOut = function(node){
     if(clickEvent.holdClick) return;
     
     //Clear tooltip
-    $('.tip').empty();
+    $('#rowtip1').empty();
     
     highlight("");
 };
@@ -988,13 +1006,13 @@ SP.onMouseOverNode = function(node){
     
     highlight("");
     //Clear tooltip
-    $('.tip').empty();
+    $('#rowtip1').empty();
 
     if(clickEvent.holdClick) return;
     
     //Init tooltip if hover over gene
     if(!_.isUndefined(node.gene))
-        $('.tip').append(tipTemplate(node));
+        $('#rowtip1').append(tipTemplate(node));
     
     highlight(node.gene);
 
@@ -1004,13 +1022,13 @@ SP.onMouseClick = function(node){
     
     highlight("");
     //Clear tooltip
-    $('.tip').empty();
+    $('#rowtip1').empty();
 
     if(clickEvent.holdClick) return;
     
     //Init tooltip if hover over gene
     if(!_.isUndefined(node.gene))
-        $('.tip').append(tipTemplate(node));
+        $('#rowtip1').append(tipTemplate(node));
     
     highlight(node.gene);
 
@@ -1091,7 +1109,7 @@ Handlebars = glob.Handlebars || require('handlebars');
 this["Templates"] = this["Templates"] || {};
 
 this["Templates"]["DesPlot"] = Handlebars.template({"compiler":[7,">= 4.0.0"],"main":function(container,depth0,helpers,partials,data) {
-    return "<div id=\"scatterplot\" class=\"col-md-9\"></div>\n\n<div id=\"barchart\" class=\"col-md-3\"></div>\n\n<div id=\"heatmap\" class=\"col-md-12\"></div>\n<!--\n<div class=\"col-md-12\">\n    Log2FC greater than: <input type=\"text\" id=\"up\" size=\"4\">\n    Log2FC smaller than: <input type=\"text\" id=\"down\" size=\"4\">\n    <button class=\"btn btn-default\"  onclick=\"saveTextAsFile()\" style=\"float: right;\"><strong>Download Data</strong></button>\n</div>\n-->";
+    return "<div id=\"scatterplot\" class=\"col-md-9\"></div>\n\n<div id=\"barchart\" class=\"col-md-3\"></div>\n\n<div id=\"scheatmap\" class=\"col-md-12\"></div>\n<!--\n<div class=\"col-md-12\">\n    Log2FC greater than: <input type=\"text\" id=\"up\" size=\"4\">\n    Log2FC smaller than: <input type=\"text\" id=\"down\" size=\"4\">\n    <button class=\"btn btn-default\"  onclick=\"saveTextAsFile()\" style=\"float: right;\"><strong>Download Data</strong></button>\n</div>\n-->";
 },"useData":true});
 
 this["Templates"]["DesPlot_tooltip"] = Handlebars.template({"1":function(container,depth0,helpers,partials,data) {
@@ -1101,7 +1119,7 @@ this["Templates"]["DesPlot_tooltip"] = Handlebars.template({"1":function(contain
 },"compiler":[7,">= 4.0.0"],"main":function(container,depth0,helpers,partials,data) {
     var stack1, helper, alias1=depth0 != null ? depth0 : (container.nullContext || {}), alias2=helpers.helperMissing, alias3="function", alias4=container.escapeExpression;
 
-  return "<div class=\"col-md-12 title\">"
+  return "\n<div class=\"col-md-12 title\">"
     + alias4(((helper = (helper = helpers.gene || (depth0 != null ? depth0.gene : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"gene","hash":{},"data":data}) : helper)))
     + "</div>\n\n<div class=\"col-md-12 process\">"
     + alias4(((helper = (helper = helpers.process || (depth0 != null ? depth0.process : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"process","hash":{},"data":data}) : helper)))
@@ -1111,7 +1129,7 @@ this["Templates"]["DesPlot_tooltip"] = Handlebars.template({"1":function(contain
     + alias4(((helper = (helper = helpers.log2 || (depth0 != null ? depth0.log2 : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"log2","hash":{},"data":data}) : helper)))
     + "</div>\n\n<div class=\"col-md-6 miniTitle\">\n    Pvalue\n</div>\n                \n<div class=\"col-md-6 info\">"
     + alias4(((helper = (helper = helpers.pvalue || (depth0 != null ? depth0.pvalue : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"pvalue","hash":{},"data":data}) : helper)))
-    + "</div>\n\n<div class=\"col-md-12 miniTitle\">\n    mutation\n</div>\n                \n<div class=\"col-md-12 mutation\" style=\"wordWrap: break-word\">\n"
+    + "</div>\n\n<div class=\"col-md-12 miniTitle\">\n    mutation\n</div>\n               \n<div class=\"col-md-12 mutation\">\n"
     + ((stack1 = helpers.each.call(alias1,(depth0 != null ? depth0.mutation : depth0),{"name":"each","hash":{},"fn":container.program(1, data, 0),"inverse":container.noop,"data":data})) != null ? stack1 : "")
     + "\n</div>\n";
 },"useData":true});
