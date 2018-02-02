@@ -17,9 +17,8 @@ body {
 }
 
 
-.wrapUp {
+#wrapUp {
     white-space:nowrap;
-    overflow:hidden;
 }
 
 #sidebar{
