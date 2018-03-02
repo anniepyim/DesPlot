@@ -86,7 +86,7 @@ if (isGroup):
 main.fillna('',inplace=True)
 main = pd.merge(genefunc,main,on="gene",how='inner')
 main = pd.merge(sampleID_index,main,on="sampleID",how='outer')        
-main.sort_values(["sampleID_index","gene","process"], inplace=True)
+main.sort_values(["gene","process","sampleID_index"], inplace=True)
 main = main.to_json(orient='records')
 
 print 'Content-Type: application/json\n\n'

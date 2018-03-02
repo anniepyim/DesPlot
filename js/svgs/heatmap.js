@@ -266,6 +266,9 @@ heatmap.draw = function (jsondata, samplelist, genelist,mycolors) {
             newnew.sort(function(a,b) { return d3.ascending(a.rowidx, b.rowidx);});
         }
 
+        if (rORc == "r"){
+            newnew.sort(function(a,b) { return d3.ascending(a.colidx, b.colidx);});
+        }
         
         newnew.forEach(function(d){
             if (rORc == "r"){

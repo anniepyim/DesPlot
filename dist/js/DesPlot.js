@@ -195,54 +195,70 @@ BC.init = function (jsondata,colorrange,color) {
             var up = 1.5,
                 down = -1.5;
 
-            var upgenes = [], downgenes = [], mutation=[], others=[]
+            var upgenes = [], downgenes = [], mutation=[], others=[];
+
+            jsondata.sort(function(x, y){
+                return d3.ascending(x.gene, y.gene);
+            });
+
+            jsondata.sort(function(x, y){
+                return d3.ascending(x.process, y.process);
+            });
+
+            jsondata.sort(function(x, y){
+                return d3.ascending(x.sampleID, y.sampleID);
+            });
+
+            console.log(jsondata)
+
             jsondata.forEach(function(d){
+                console.log(d)
                 if (d.mutation !== "") mutation.push (d);
                 if (d.log2 >= up) upgenes.push(d);
                 else if (d.log2 <= down) downgenes.push(d);
                 else if (d.mutation == "") others.push(d);
             });
 
-            mutation.sort(function(x, y){
-                return d3.ascending(x.process, y.process);
-            });
+            // mutation.sort(function(x, y){
+            //     return d3.ascending(x.sampleID, y.sampleID);
+            // });
 
-            upgenes.sort(function(x, y){
-                return d3.ascending(x.process, y.process);
-            });
+            // upgenes.sort(function(x, y){
+            //     return d3.ascending(x.sampleID, y.sampleID);
+            // });
 
-            downgenes.sort(function(x, y){
-                return d3.ascending(x.process, y.process);
-            });
+            // downgenes.sort(function(x, y){
+            //     return d3.ascending(x.sampleID, y.sampleID);
+            // });
 
-            others.sort(function(x, y){
-                return d3.ascending(x.process, y.process);
-            });
+            // others.sort(function(x, y){
+            //     return d3.ascending(x.sampleID, y.sampleID);
+            // });
 
             result += "Results\n";
             result += "----------------------------\n\n";
             result += "UP-REGULATED GENES (Log2 Fold Change > 1.5):\n\n";
-            result += "GENE NAME\tPROCESS\tLOG2FOLD\tP-VALUE\n";
+            result += "SAMPLE NAME\tGENE NAME\tPROCESS\tLOG2FOLD\tP-VALUE\n";
             upgenes.forEach(function(d){
-                result += d.gene+"\t"+d.process+"\t"+d.log2+"\t"+d.pvalue+"\n";
+                result += d.sampleID+"\t"+d.gene+"\t"+d.process+"\t"+d.log2+"\t"+d.pvalue+"\n";
             });
             result += "----------------------------\n\n";
             result += "DOWN-REGULATED GENES (Log2 Fold Change < -1.5):\n\n";
-            result += "GENE NAME\tPROCESS\tLOG2FOLD\tP-VALUE\n";
+            result += "SAMPLE NAME\tGENE NAME\tPROCESS\tLOG2FOLD\tP-VALUE\n";
             downgenes.forEach(function(d){
-                result += d.gene+"\t"+d.process+"\t"+d.log2+"\t"+d.pvalue+"\n";
+                result += d.sampleID+"\t"+d.gene+"\t"+d.process+"\t"+d.log2+"\t"+d.pvalue+"\n";
             });
             result += "----------------------------\n\n";
             result += "MUTATED GENES:\n\n";
-            result += "GENE NAME\tCHROMOSOME\tPROCESS\tVARIANT DESCRIPTION\n";
+            result += "SAMPLE NAME\tGENE NAME\tCHROMOSOME\tPROCESS\tVARIANT DESCRIPTION\n";
             mutation.forEach(function(d){
-                result += d.gene+"\t"+d.process+"\t"+d.log2+"\t"+d.pvalue+"\t"+d.mutation+"\n";
+                result += d.sampleID+"\t"+d.gene+"\t"+d.process+"\t"+d.log2+"\t"+d.pvalue+"\t"+d.mutation+"\n";
             });
             result += "----------------------------\n\n";
             result += "OTHER GENES:\n\n";
-            result += "GENE NAME\tPROCESS\tLOG2FOLD\tP-VALUE\n";
+            result += "SAMPLE NAME\tGENE NAME\tPROCESS\tLOG2FOLD\tP-VALUE\n";
             others.forEach(function(d){
-                result += d.gene+"\t"+d.process+"\t"+d.log2+"\t"+d.pvalue+"\n";
+                result += d.sampleID+"\t"+d.gene+"\t"+d.process+"\t"+d.log2+"\t"+d.pvalue+"\n";
             });
             result += "----------------------------\n";
             result += "----------------------------\n\n";
@@ -573,6 +589,9 @@ heatmap.draw = function (jsondata, samplelist, genelist,mycolors) {
             newnew.sort(function(a,b) { return d3.ascending(a.rowidx, b.rowidx);});
         }
 
+        if (rORc == "r"){
+            newnew.sort(function(a,b) { return d3.ascending(a.colidx, b.colidx);});
+        }
         
         newnew.forEach(function(d){
             if (rORc == "r"){
