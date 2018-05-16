@@ -27,20 +27,45 @@ body {
 
 .tip {
     text-align: center;
-    border-right: solid 1px #DDD;
 }
 
-.tip .process{
+.greyish{
+    color: #666;
+}
+
+.title{
+    font-family: 'Montserrat', 'sans-serif';
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size:18px;
+}
+
+.tip .gene_name {
+    font-size: 12px;
+}
+
+.tip .process {
     margin-top: 5px;
-    margin-bottom: 8px;
+    font-weight: 600;
 }
 
 .tip .function {
-    color: #666;
-    text-align: center;
     font-style: italic;
-    margin-bottom: 8px;
     font-size: 12px;
+    margin-bottom:5px;
+}
+
+.tip .sample {
+    margin-top: 8px;
+    font-size: 16px;
+}
+
+.miniTitle{
+    font-family: 'Montserrat', 'sans-serif';
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size:13px;
+    text-align: left;
 }
 
 .tip .info {
@@ -52,27 +77,8 @@ body {
     font-size: 10px;
 }
 
-.title{
-    font-family: 'Montserrat', 'sans-serif';
-    font-weight: 700;
-    text-transform: uppercase;
-    font-size:18px;
-}
-
-.miniTitle{
-    font-family: 'Montserrat', 'sans-serif';
-    font-weight: 700;
-    text-transform: uppercase;
-    font-size:13px;
-    text-align: left;
-}
-
-.midTitle{
-    font-family: 'Montserrat', 'sans-serif';
-    font-weight: 700;
-    /*text-transform: uppercase;*/
-    font-size:16px;
-    text-align: left;
+.infos{
+    padding-right:0px;
 }
 
 .axis path,

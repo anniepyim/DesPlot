@@ -23,7 +23,7 @@ heatmap.processData = function (jsondata, nfunc,colorrange) {
     //create map for gene and sample data
     var genedata = d3.nest()
         .key(function (d) {
-            return d.gene;
+            return d.geneID;
         })
         .entries(newdata);
 
@@ -53,24 +53,15 @@ heatmap.processData = function (jsondata, nfunc,colorrange) {
         id += 1;
     });
     
-    outdata = [];
-
     newdata.forEach(function (d) {
-        outdata.push({
-            rowidx: samplemap[d.sampleID], 
-            colidx: genemap[d.gene], 
-            log2: d3.format(".3f")(d.log2), 
-            pvalue: d3.format(".3f")(d.pvalue), 
-            sample: d.sampleID, 
-            gene: d.gene, 
-            process: d.process, 
-            gene_function: d.gene_function, 
-            mutation: d.mutation.split(',')
-        });
+        d.rowidx = samplemap[d.sampleID];
+        d.colidx = genemap[d.geneID];
+        d.log2 = d3.format(".3f")(d.log2);
+        d.pvalue = d3.format(".3f")(d.pvalue);
     });
     
     
-    heatmap.draw(outdata, samplelist, genelist,colorrange);
+    heatmap.draw(newdata, samplelist, genelist,colorrange);
 };
 
 heatmap.draw = function (jsondata, samplelist, genelist,mycolors) {

@@ -1,28 +1,69 @@
+<div class="col-md-12 title">{{geneID}}</div>
 
-<div class="col-md-12 title">{{gene}}</div>
+<div class="col-md-12 gene_name greyish">({{gene_name}})</div>
 
 <div class="col-md-12 process">{{process}}</div>
 
-<div class="col-md-12 function">{{gene_function}}</div>
-<div id="wrapUp">  
-<div class="col-md-6 miniTitle">
-    SampleID
-</div>
-           
-   
-<div class="col-md-6 info">{{sample}}</div>
+<div class="col-md-12 function greyish">{{gene_function}}</div>
 
+{{#if chr}}
+<div class="row infos">
+<div class="col-md-5 miniTitle greyish">
+    chr
+</div>                
+<div class="col-md-7 info">{{chr}}</div>
+</div>
+{{/if}}
+
+{{#if geneID_a1}}
+<div class="row infos">
+<div class="col-md-5 miniTitle greyish">
+    {{geneID_a1_name}}
+</div>                
+<div class="col-md-7 info">{{geneID_a1}}</div>
+{{/if}}
+</div>
+
+{{#if geneID_a2}}
+<div class="row infos">
+<div class="col-md-5 miniTitle greyish">
+    {{geneID_a2_name}}
+</div>                
+<div class="col-md-7 info">{{geneID_a2}}</div>
+{{/if}}
+</div>
+
+{{#if geneID_a3}}
+<div class="row infos">
+
+<div class="col-md-5 miniTitle greyish">
+    {{geneID_a3_name}}
+</div>                
+<div class="col-md-7 info">{{geneID_a3}}</div>
+</div>
+{{/if}}
+
+
+<div class="col-md-12 miniTitle sample">{{sampleID}}</div>
+
+<div id="wrapUp">  
+
+<div class="row infos">
 <div class="col-md-6 miniTitle">
     Log2 FC
 </div>
-                
+   
 <div class="col-md-6 info">{{log2}}</div>
+</div>
 
+<div class="row infos">
 <div class="col-md-6 miniTitle">
     Pvalue
 </div>
                 
 <div class="col-md-6 info">{{pvalue}}</div>
+</div>
+
 </div>
 <div class="col-md-12 miniTitle">
     mutation

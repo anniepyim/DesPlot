@@ -127,12 +127,12 @@ BC.init = function (jsondata,colorrange,color) {
     
     var genedata = d3.nest()
         .key(function (d) {
-            return d.gene;
+            return d.geneID;
         })
         .entries(newdata);
     
     genedata.forEach(function(d){
-        d.gene = d.key;
+        d.geneID = d.key;
         d.process = d.values[0].process;
     });
     
@@ -198,7 +198,7 @@ BC.init = function (jsondata,colorrange,color) {
             var upgenes = [], downgenes = [], mutation=[], others=[];
 
             jsondata.sort(function(x, y){
-                return d3.ascending(x.gene, y.gene);
+                return d3.ascending(x.geneID, y.geneID);
             });
 
             jsondata.sort(function(x, y){
@@ -209,10 +209,8 @@ BC.init = function (jsondata,colorrange,color) {
                 return d3.ascending(x.sampleID, y.sampleID);
             });
 
-            console.log(jsondata)
 
             jsondata.forEach(function(d){
-                console.log(d)
                 if (d.mutation !== "") mutation.push (d);
                 if (d.log2 >= up) upgenes.push(d);
                 else if (d.log2 <= down) downgenes.push(d);
@@ -238,27 +236,27 @@ BC.init = function (jsondata,colorrange,color) {
             result += "Results\n";
             result += "----------------------------\n\n";
             result += "UP-REGULATED GENES (Log2 Fold Change > 1.5):\n\n";
-            result += "SAMPLE NAME\tGENE NAME\tPROCESS\tLOG2FOLD\tP-VALUE\n";
+            result += "SAMPLE NAME\tHGNC ID\tGENE NAME\tPROCESS\tLOG2FOLD\tP-VALUE\n";
             upgenes.forEach(function(d){
-                result += d.sampleID+"\t"+d.gene+"\t"+d.process+"\t"+d.log2+"\t"+d.pvalue+"\n";
+                result += d.sampleID+"\t"+d.geneID+"\t"+d.gene_name+"\t"+d.process+"\t"+d.log2+"\t"+d.pvalue+"\n";
             });
             result += "----------------------------\n\n";
             result += "DOWN-REGULATED GENES (Log2 Fold Change < -1.5):\n\n";
-            result += "SAMPLE NAME\tGENE NAME\tPROCESS\tLOG2FOLD\tP-VALUE\n";
+            result += "SAMPLE NAME\tHGNC ID\tGENE NAME\tPROCESS\tLOG2FOLD\tP-VALUE\n";
             downgenes.forEach(function(d){
-                result += d.sampleID+"\t"+d.gene+"\t"+d.process+"\t"+d.log2+"\t"+d.pvalue+"\n";
+                result += d.sampleID+"\t"+d.geneID+"\t"+d.gene_name+"\t"+d.process+"\t"+d.log2+"\t"+d.pvalue+"\n";
             });
             result += "----------------------------\n\n";
             result += "MUTATED GENES:\n\n";
-            result += "SAMPLE NAME\tGENE NAME\tCHROMOSOME\tPROCESS\tVARIANT DESCRIPTION\n";
+            result += "SAMPLE NAME\tHGNC ID\tGENE NAME\tCHROMOSOME\tPROCESS\tVARIANT DESCRIPTION\n";
             mutation.forEach(function(d){
-                result += d.sampleID+"\t"+d.gene+"\t"+d.process+"\t"+d.log2+"\t"+d.pvalue+"\t"+d.mutation+"\n";
+                result += d.sampleID+"\t"+d.geneID+"\t"+d.gene_name+"\t"+d.process+"\t"+d.log2+"\t"+d.pvalue+"\t"+d.mutation+"\n";
             });
             result += "----------------------------\n\n";
             result += "OTHER GENES:\n\n";
-            result += "SAMPLE NAME\tGENE NAME\tPROCESS\tLOG2FOLD\tP-VALUE\n";
+            result += "SAMPLE NAME\tHGNC ID\tGENE NAME\tPROCESS\tLOG2FOLD\tP-VALUE\n";
             others.forEach(function(d){
-                result += d.sampleID+"\t"+d.gene+"\t"+d.process+"\t"+d.log2+"\t"+d.pvalue+"\n";
+                result += d.sampleID+"\t"+d.geneID+"\t"+d.gene_name+"\t"+d.process+"\t"+d.log2+"\t"+d.pvalue+"\n";
             });
             result += "----------------------------\n";
             result += "----------------------------\n\n";
@@ -346,7 +344,7 @@ heatmap.processData = function (jsondata, nfunc,colorrange) {
     //create map for gene and sample data
     var genedata = d3.nest()
         .key(function (d) {
-            return d.gene;
+            return d.geneID;
         })
         .entries(newdata);
 
@@ -376,24 +374,15 @@ heatmap.processData = function (jsondata, nfunc,colorrange) {
         id += 1;
     });
     
-    outdata = [];
-
     newdata.forEach(function (d) {
-        outdata.push({
-            rowidx: samplemap[d.sampleID], 
-            colidx: genemap[d.gene], 
-            log2: d3.format(".3f")(d.log2), 
-            pvalue: d3.format(".3f")(d.pvalue), 
-            sample: d.sampleID, 
-            gene: d.gene, 
-            process: d.process, 
-            gene_function: d.gene_function, 
-            mutation: d.mutation.split(',')
-        });
+        d.rowidx = samplemap[d.sampleID];
+        d.colidx = genemap[d.geneID];
+        d.log2 = d3.format(".3f")(d.log2);
+        d.pvalue = d3.format(".3f")(d.pvalue);
     });
     
     
-    heatmap.draw(outdata, samplelist, genelist,colorrange);
+    heatmap.draw(newdata, samplelist, genelist,colorrange);
 };
 
 heatmap.draw = function (jsondata, samplelist, genelist,mycolors) {
@@ -805,7 +794,7 @@ SP.drawaxis = function () {
 
 SP.update = function (jsondata, nfunc, ncolor,colorrange) {
     
-    var data = [];
+    var nodedata = [];
     
     mycolors = colorrange;
     
@@ -816,22 +805,22 @@ SP.update = function (jsondata, nfunc, ncolor,colorrange) {
 
     jsondata.forEach(function (d) {
         if (d.process == nfunc && !isNaN(parseFloat(d.log2)) && isFinite(d.log2)) {
-            data.push(d);
+            nodedata.push(d);
         }
     });
 
-    data.forEach(function (d) {
+    nodedata.forEach(function (d) {
         d.log2 = +d.log2;
     });
 
-    x.domain(data.map(function (d) {
+    x.domain(nodedata.map(function (d) {
         return d.sampleID;
     }));
 
-    var ymin = Math.abs(d3.min(data, function (d) {
+    var ymin = Math.abs(d3.min(nodedata, function (d) {
         return d.log2;
     }));
-    var ymax = Math.abs(d3.max(data, function (d) {
+    var ymax = Math.abs(d3.max(nodedata, function (d) {
         return d.log2;
     }));
     var yabs = Math.max(ymin, ymax);
@@ -854,22 +843,17 @@ SP.update = function (jsondata, nfunc, ncolor,colorrange) {
     colorScale.domain([yabs * -1, 0,yabs])
         .range([mycolors[0], mycolors[5],mycolors[10]]);
 
-     var nodedata = data.map(function (d) {
-            return {
-                x: x(d.sampleID), 
-                y: y(d.log2),
-                y2: d.log2,
-                r: 3.5,
-                log2: d3.format(".3f")(d.log2),
-                pvalue: d3.format(".3f")(d.pvalue),
-                sample: d.sampleID,
-                process: d.process,
-                gene_function: d.gene_function,
-                gene: d.gene,
-                mutation: d.mutation.split(',')
-            };
-        });
-    
+    nodedata.forEach(function (d) {
+        d.x = x(d.sampleID);
+        d.y = y(d.log2);
+        d.y2 = d.log2;
+        d.r = 3.5;
+        d.log2 = d3.format(".3f")(d.log2);
+        d.pvalue = d3.format(".3f")(d.pvalue);
+        d.mutation = d.mutation.split(';');
+        delete d.sampleID_index;
+    });
+
     function updateNodes(zoom){
         
         var gs = SPsvg.select("g.scatter");
@@ -1030,10 +1014,10 @@ SP.onMouseOverNode = function(node){
     if(clickEvent.holdClick) return;
     
     //Init tooltip if hover over gene
-    if(!_.isUndefined(node.gene))
+    if(!_.isUndefined(node.geneID))
         $('#rowtip1').append(tipTemplate(node));
     
-    highlight(node.gene);
+    highlight(node.geneID);
 
 };
 
@@ -1046,10 +1030,10 @@ SP.onMouseClick = function(node){
     if(clickEvent.holdClick) return;
     
     //Init tooltip if hover over gene
-    if(!_.isUndefined(node.gene))
+    if(!_.isUndefined(node.geneID))
         $('#rowtip1').append(tipTemplate(node));
     
-    highlight(node.gene);
+    highlight(node.geneID);
 
     //d3.select(this).on("mouseout", null);
     d3.selectAll("circle.node").on("mouseout", null);
@@ -1066,10 +1050,10 @@ var highlight = function(target){
         .transition()
         .duration(500)
         .style("fill", function (d) {
-			return d.gene == target? highlightcolor : (d.mutation[0] !== "" && d.mutation[0] !== "0 mutation(s)") ? mutatedcolor : d.log2 > yMax ? mycolors[10] : d.log2 < yMin ? mycolors[0]: colorScale(d.log2);
+			return d.geneID == target? highlightcolor : (d.mutation[0] !== "" && d.mutation[0] !== "0 mutation(s)") ? mutatedcolor : d.log2 > yMax ? mycolors[10] : d.log2 < yMin ? mycolors[0]: colorScale(d.log2);
         })
         .attr("r", function (d) {
-            return d.gene == target ? highlightradius : (d.mutation[0] !== "" && d.mutation[0] !== "0 mutation(s)") ? highlightradius : d.r;
+            return d.geneID == target ? highlightradius : (d.mutation[0] !== "" && d.mutation[0] !== "0 mutation(s)") ? highlightradius : d.r;
         });
     
 };
@@ -1132,26 +1116,66 @@ this["Templates"]["DesPlot"] = Handlebars.template({"compiler":[7,">= 4.0.0"],"m
 },"useData":true});
 
 this["Templates"]["DesPlot_tooltip"] = Handlebars.template({"1":function(container,depth0,helpers,partials,data) {
+    var helper;
+
+  return "<div class=\"row infos\">\n<div class=\"col-md-5 miniTitle greyish\">\n    chr\n</div>                \n<div class=\"col-md-7 info\">"
+    + container.escapeExpression(((helper = (helper = helpers.chr || (depth0 != null ? depth0.chr : depth0)) != null ? helper : helpers.helperMissing),(typeof helper === "function" ? helper.call(depth0 != null ? depth0 : (container.nullContext || {}),{"name":"chr","hash":{},"data":data}) : helper)))
+    + "</div>\n</div>\n";
+},"3":function(container,depth0,helpers,partials,data) {
+    var helper, alias1=depth0 != null ? depth0 : (container.nullContext || {}), alias2=helpers.helperMissing, alias3="function", alias4=container.escapeExpression;
+
+  return "<div class=\"row infos\">\n<div class=\"col-md-5 miniTitle greyish\">\n    "
+    + alias4(((helper = (helper = helpers.geneID_a1_name || (depth0 != null ? depth0.geneID_a1_name : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"geneID_a1_name","hash":{},"data":data}) : helper)))
+    + "\n</div>                \n<div class=\"col-md-7 info\">"
+    + alias4(((helper = (helper = helpers.geneID_a1 || (depth0 != null ? depth0.geneID_a1 : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"geneID_a1","hash":{},"data":data}) : helper)))
+    + "</div>\n";
+},"5":function(container,depth0,helpers,partials,data) {
+    var helper, alias1=depth0 != null ? depth0 : (container.nullContext || {}), alias2=helpers.helperMissing, alias3="function", alias4=container.escapeExpression;
+
+  return "<div class=\"row infos\">\n<div class=\"col-md-5 miniTitle greyish\">\n    "
+    + alias4(((helper = (helper = helpers.geneID_a2_name || (depth0 != null ? depth0.geneID_a2_name : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"geneID_a2_name","hash":{},"data":data}) : helper)))
+    + "\n</div>                \n<div class=\"col-md-7 info\">"
+    + alias4(((helper = (helper = helpers.geneID_a2 || (depth0 != null ? depth0.geneID_a2 : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"geneID_a2","hash":{},"data":data}) : helper)))
+    + "</div>\n";
+},"7":function(container,depth0,helpers,partials,data) {
+    var helper, alias1=depth0 != null ? depth0 : (container.nullContext || {}), alias2=helpers.helperMissing, alias3="function", alias4=container.escapeExpression;
+
+  return "<div class=\"row infos\">\n\n<div class=\"col-md-5 miniTitle greyish\">\n    "
+    + alias4(((helper = (helper = helpers.geneID_a3_name || (depth0 != null ? depth0.geneID_a3_name : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"geneID_a3_name","hash":{},"data":data}) : helper)))
+    + "\n</div>                \n<div class=\"col-md-7 info\">"
+    + alias4(((helper = (helper = helpers.geneID_a3 || (depth0 != null ? depth0.geneID_a3 : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"geneID_a3","hash":{},"data":data}) : helper)))
+    + "</div>\n</div>\n";
+},"9":function(container,depth0,helpers,partials,data) {
     return "    "
     + container.escapeExpression(container.lambda(depth0, depth0))
     + "<br>\n";
 },"compiler":[7,">= 4.0.0"],"main":function(container,depth0,helpers,partials,data) {
     var stack1, helper, alias1=depth0 != null ? depth0 : (container.nullContext || {}), alias2=helpers.helperMissing, alias3="function", alias4=container.escapeExpression;
 
-  return "\n<div class=\"col-md-12 title\">"
-    + alias4(((helper = (helper = helpers.gene || (depth0 != null ? depth0.gene : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"gene","hash":{},"data":data}) : helper)))
-    + "</div>\n\n<div class=\"col-md-12 process\">"
+  return "<div class=\"col-md-12 title\">"
+    + alias4(((helper = (helper = helpers.geneID || (depth0 != null ? depth0.geneID : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"geneID","hash":{},"data":data}) : helper)))
+    + "</div>\n\n<div class=\"col-md-12 gene_name greyish\">("
+    + alias4(((helper = (helper = helpers.gene_name || (depth0 != null ? depth0.gene_name : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"gene_name","hash":{},"data":data}) : helper)))
+    + ")</div>\n\n<div class=\"col-md-12 process\">"
     + alias4(((helper = (helper = helpers.process || (depth0 != null ? depth0.process : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"process","hash":{},"data":data}) : helper)))
-    + "</div>\n\n<div class=\"col-md-12 function\">"
+    + "</div>\n\n<div class=\"col-md-12 function greyish\">"
     + alias4(((helper = (helper = helpers.gene_function || (depth0 != null ? depth0.gene_function : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"gene_function","hash":{},"data":data}) : helper)))
-    + "</div>\n<div id=\"wrapUp\">  \n<div class=\"col-md-6 miniTitle\">\n    SampleID\n</div>\n           \n   \n<div class=\"col-md-6 info\">"
-    + alias4(((helper = (helper = helpers.sample || (depth0 != null ? depth0.sample : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"sample","hash":{},"data":data}) : helper)))
-    + "</div>\n\n<div class=\"col-md-6 miniTitle\">\n    Log2 FC\n</div>\n                \n<div class=\"col-md-6 info\">"
+    + "</div>\n\n"
+    + ((stack1 = helpers["if"].call(alias1,(depth0 != null ? depth0.chr : depth0),{"name":"if","hash":{},"fn":container.program(1, data, 0),"inverse":container.noop,"data":data})) != null ? stack1 : "")
+    + "\n"
+    + ((stack1 = helpers["if"].call(alias1,(depth0 != null ? depth0.geneID_a1 : depth0),{"name":"if","hash":{},"fn":container.program(3, data, 0),"inverse":container.noop,"data":data})) != null ? stack1 : "")
+    + "</div>\n\n"
+    + ((stack1 = helpers["if"].call(alias1,(depth0 != null ? depth0.geneID_a2 : depth0),{"name":"if","hash":{},"fn":container.program(5, data, 0),"inverse":container.noop,"data":data})) != null ? stack1 : "")
+    + "</div>\n\n"
+    + ((stack1 = helpers["if"].call(alias1,(depth0 != null ? depth0.geneID_a3 : depth0),{"name":"if","hash":{},"fn":container.program(7, data, 0),"inverse":container.noop,"data":data})) != null ? stack1 : "")
+    + "\n\n<div class=\"col-md-12 miniTitle sample\">"
+    + alias4(((helper = (helper = helpers.sampleID || (depth0 != null ? depth0.sampleID : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"sampleID","hash":{},"data":data}) : helper)))
+    + "</div>\n\n<div id=\"wrapUp\">  \n\n<div class=\"row infos\">\n<div class=\"col-md-6 miniTitle\">\n    Log2 FC\n</div>\n   \n<div class=\"col-md-6 info\">"
     + alias4(((helper = (helper = helpers.log2 || (depth0 != null ? depth0.log2 : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"log2","hash":{},"data":data}) : helper)))
-    + "</div>\n\n<div class=\"col-md-6 miniTitle\">\n    Pvalue\n</div>\n                \n<div class=\"col-md-6 info\">"
+    + "</div>\n</div>\n\n<div class=\"row infos\">\n<div class=\"col-md-6 miniTitle\">\n    Pvalue\n</div>\n                \n<div class=\"col-md-6 info\">"
     + alias4(((helper = (helper = helpers.pvalue || (depth0 != null ? depth0.pvalue : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"pvalue","hash":{},"data":data}) : helper)))
-    + "</div>\n</div>\n<div class=\"col-md-12 miniTitle\">\n    mutation\n</div>\n               \n<div class=\"col-md-12 mutation\">\n"
-    + ((stack1 = helpers.each.call(alias1,(depth0 != null ? depth0.mutation : depth0),{"name":"each","hash":{},"fn":container.program(1, data, 0),"inverse":container.noop,"data":data})) != null ? stack1 : "")
+    + "</div>\n</div>\n\n</div>\n<div class=\"col-md-12 miniTitle\">\n    mutation\n</div>\n               \n<div class=\"col-md-12 mutation\">\n"
+    + ((stack1 = helpers.each.call(alias1,(depth0 != null ? depth0.mutation : depth0),{"name":"each","hash":{},"fn":container.program(9, data, 0),"inverse":container.noop,"data":data})) != null ? stack1 : "")
     + "\n</div>\n";
 },"useData":true});
 

@@ -54,12 +54,12 @@ BC.init = function (jsondata,colorrange,color) {
     
     var genedata = d3.nest()
         .key(function (d) {
-            return d.gene;
+            return d.geneID;
         })
         .entries(newdata);
     
     genedata.forEach(function(d){
-        d.gene = d.key;
+        d.geneID = d.key;
         d.process = d.values[0].process;
     });
     
@@ -125,7 +125,7 @@ BC.init = function (jsondata,colorrange,color) {
             var upgenes = [], downgenes = [], mutation=[], others=[];
 
             jsondata.sort(function(x, y){
-                return d3.ascending(x.gene, y.gene);
+                return d3.ascending(x.geneID, y.geneID);
             });
 
             jsondata.sort(function(x, y){
@@ -136,10 +136,8 @@ BC.init = function (jsondata,colorrange,color) {
                 return d3.ascending(x.sampleID, y.sampleID);
             });
 
-            console.log(jsondata)
 
             jsondata.forEach(function(d){
-                console.log(d)
                 if (d.mutation !== "") mutation.push (d);
                 if (d.log2 >= up) upgenes.push(d);
                 else if (d.log2 <= down) downgenes.push(d);
@@ -165,27 +163,27 @@ BC.init = function (jsondata,colorrange,color) {
             result += "Results\n";
             result += "----------------------------\n\n";
             result += "UP-REGULATED GENES (Log2 Fold Change > 1.5):\n\n";
-            result += "SAMPLE NAME\tGENE NAME\tPROCESS\tLOG2FOLD\tP-VALUE\n";
+            result += "SAMPLE NAME\tHGNC ID\tGENE NAME\tPROCESS\tLOG2FOLD\tP-VALUE\n";
             upgenes.forEach(function(d){
-                result += d.sampleID+"\t"+d.gene+"\t"+d.process+"\t"+d.log2+"\t"+d.pvalue+"\n";
+                result += d.sampleID+"\t"+d.geneID+"\t"+d.gene_name+"\t"+d.process+"\t"+d.log2+"\t"+d.pvalue+"\n";
             });
             result += "----------------------------\n\n";
             result += "DOWN-REGULATED GENES (Log2 Fold Change < -1.5):\n\n";
-            result += "SAMPLE NAME\tGENE NAME\tPROCESS\tLOG2FOLD\tP-VALUE\n";
+            result += "SAMPLE NAME\tHGNC ID\tGENE NAME\tPROCESS\tLOG2FOLD\tP-VALUE\n";
             downgenes.forEach(function(d){
-                result += d.sampleID+"\t"+d.gene+"\t"+d.process+"\t"+d.log2+"\t"+d.pvalue+"\n";
+                result += d.sampleID+"\t"+d.geneID+"\t"+d.gene_name+"\t"+d.process+"\t"+d.log2+"\t"+d.pvalue+"\n";
             });
             result += "----------------------------\n\n";
             result += "MUTATED GENES:\n\n";
-            result += "SAMPLE NAME\tGENE NAME\tCHROMOSOME\tPROCESS\tVARIANT DESCRIPTION\n";
+            result += "SAMPLE NAME\tHGNC ID\tGENE NAME\tCHROMOSOME\tPROCESS\tVARIANT DESCRIPTION\n";
             mutation.forEach(function(d){
-                result += d.sampleID+"\t"+d.gene+"\t"+d.process+"\t"+d.log2+"\t"+d.pvalue+"\t"+d.mutation+"\n";
+                result += d.sampleID+"\t"+d.geneID+"\t"+d.gene_name+"\t"+d.process+"\t"+d.log2+"\t"+d.pvalue+"\t"+d.mutation+"\n";
             });
             result += "----------------------------\n\n";
             result += "OTHER GENES:\n\n";
-            result += "SAMPLE NAME\tGENE NAME\tPROCESS\tLOG2FOLD\tP-VALUE\n";
+            result += "SAMPLE NAME\tHGNC ID\tGENE NAME\tPROCESS\tLOG2FOLD\tP-VALUE\n";
             others.forEach(function(d){
-                result += d.sampleID+"\t"+d.gene+"\t"+d.process+"\t"+d.log2+"\t"+d.pvalue+"\n";
+                result += d.sampleID+"\t"+d.geneID+"\t"+d.gene_name+"\t"+d.process+"\t"+d.log2+"\t"+d.pvalue+"\n";
             });
             result += "----------------------------\n";
             result += "----------------------------\n\n";
