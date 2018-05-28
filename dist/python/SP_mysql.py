@@ -10,30 +10,33 @@ import pymysql
 
 #start_time = time.time()
 
-form = cgi.FieldStorage()
-jsons = form.getvalue('jsons')
-sampleID = json.loads(jsons)
-organism = form.getvalue('organism')
-sessionid = form.getvalue('sessionid')
-host = form.getvalue('host')
-port = form.getvalue('port')
-user = form.getvalue('user')
-passwd = form.getvalue('passwd')
-unix_socket = form.getvalue('unix_socket')
-upper_limit = float(form.getvalue('upper_limit'))
-lower_limit = float(form.getvalue('lower_limit'))
+# The following info is provided by mysql_info.json
+# Which is passed through the ajax call parameters
+
+# form = cgi.FieldStorage()
+# jsons = form.getvalue('jsons')
+# sampleID = json.loads(jsons)
+# organism = form.getvalue('organism')
+# sessionid = form.getvalue('sessionid')
+# host = form.getvalue('host')
+# port = form.getvalue('port')
+# user = form.getvalue('user')
+# passwd = form.getvalue('passwd')
+# unix_socket = form.getvalue('unix_socket')
+# upper_limit = float(form.getvalue('upper_limit'))
+# lower_limit = float(form.getvalue('lower_limit'))
 
 
-# sampleID = {'group1':['HCT116-21-3-c1', 'HCT116-21-3-c3', 'HCT116-5-4', 'HCT116-5-4-p'],'group2':['HCT116-8-3-c3', 'HCT116-8-3-c4', 'RPE-21-3-c1', 'RPE-21-3-c1-p','RPE-21-3-c2', 'RPE-5-3-12-3-p']}
-# sessionid= "test"
-# organism = "Human"
-# host = "localhost"
-# port = 3306
-# user = "root"
-# passwd = ""
-# unix_socket = "/tmp/mysql.sock"
-# upper_limit = 2
-# lower_limit = -2
+sampleID = ['HCT116-21-3-c1', 'HCT116-21-3-c3', 'HCT116-5-4']
+sessionid= "test"
+organism = "Human"
+host = "localhost"
+port = 3306
+user = "root"
+passwd = ""
+unix_socket = "/tmp/mysql.sock"
+upper_limit = 2
+lower_limit = -2
 
 isGroup = isinstance(sampleID, dict)
 
@@ -87,11 +90,12 @@ main.fillna('',inplace=True)
 main = pd.merge(genefunc,main,on="geneID",how='inner')
 main = pd.merge(sampleID_index,main,on="sampleID",how='outer')        
 main.sort_values(["sampleID_index","geneID","process"], inplace=True)
+#main2 = main.to_dict(orient='records')
 main = main.to_json(orient='records')
+
+#with open('data.json', 'w+') as fp:
+#	json.dump(main2,fp)
+
 
 print 'Content-Type: application/json\n\n'
 print (main)
-#print "Content-type: text/html\n"
-#print "<html>"
-#print main
-#print "</html>"
