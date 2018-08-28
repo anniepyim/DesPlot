@@ -175,7 +175,7 @@ BC.init = function (jsondata,colorrange,color) {
             });
             result += "----------------------------\n\n";
             result += "MUTATED GENES:\n\n";
-            result += "SAMPLE NAME\tHGNC ID\tGENE NAME\tCHROMOSOME\tPROCESS\tVARIANT DESCRIPTION\n";
+            result += "SAMPLE NAME\tHGNC ID\tGENE NAME\tPROCESS\tLOG2FOLD\tP-VALUE\tVARIANT DESCRIPTION\n";
             mutation.forEach(function(d){
                 result += d.sampleID+"\t"+d.geneID+"\t"+d.gene_name+"\t"+d.process+"\t"+d.log2+"\t"+d.pvalue+"\t"+d.mutation+"\n";
             });

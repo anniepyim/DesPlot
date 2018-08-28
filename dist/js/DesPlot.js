@@ -248,7 +248,7 @@ BC.init = function (jsondata,colorrange,color) {
             });
             result += "----------------------------\n\n";
             result += "MUTATED GENES:\n\n";
-            result += "SAMPLE NAME\tHGNC ID\tGENE NAME\tCHROMOSOME\tPROCESS\tVARIANT DESCRIPTION\n";
+            result += "SAMPLE NAME\tHGNC ID\tGENE NAME\tPROCESS\tLOG2FOLD\tP-VALUE\tVARIANT DESCRIPTION\n";
             mutation.forEach(function(d){
                 result += d.sampleID+"\t"+d.geneID+"\t"+d.gene_name+"\t"+d.process+"\t"+d.log2+"\t"+d.pvalue+"\t"+d.mutation+"\n";
             });
@@ -850,7 +850,7 @@ SP.update = function (jsondata, nfunc, ncolor,colorrange) {
         d.r = 3.5;
         d.log2 = d3.format(".3f")(d.log2);
         d.pvalue = d3.format(".3f")(d.pvalue);
-        d.mutation = d.mutation.split(';');
+        d.mutation = (d.mutation == "" || d.mutation[0] == ["0 mutation(s)"]) ? ["0 mutation(s)"] : d.mutation.split(';');
         delete d.sampleID_index;
     });
 
