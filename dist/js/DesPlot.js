@@ -850,7 +850,7 @@ SP.update = function (jsondata, nfunc, ncolor,colorrange) {
         d.r = 3.5;
         d.log2 = d3.format(".3f")(d.log2);
         d.pvalue = d3.format(".3f")(d.pvalue);
-        d.mutation = (d.mutation == "" || d.mutation[0] == ["0 mutation(s)"]) ? ["0 mutation(s)"] : d.mutation.split(';');
+        d.mutation = (d.mutation == "" || d.mutation[0] == ["0 mutation(s)"]) ? ["0 mutation(s)"] : Array.isArray(d.mutation) ? d.mutation : d.mutation.split(';');
         delete d.sampleID_index;
     });
 
